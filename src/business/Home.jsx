@@ -54,8 +54,8 @@ function Home() {
           setListTotal(response.data[0]);
           setBandProduct(response.data[1]);
           setStockingProduct(response.data[2]);
-          setLoading(false);
         }
+        setLoading(false);
         console.log(response);
       })
       .catch(error => console.log(error));

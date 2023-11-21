@@ -54,7 +54,7 @@ function NewProducts() {
   return (
     <div>
       <Slider {...settings}>
-        {top10Products.map((product, index) => (
+        {top10Products && top10Products.map((product, index) => (
           <div
             key={index}
             className="d-flex flex-column align-items-center justify-content-around product-item my-3 px-2"

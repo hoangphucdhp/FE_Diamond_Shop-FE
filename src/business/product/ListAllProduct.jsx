@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { callAPI } from "../../service/API";
 import { ThongBao, Toastify } from "../../service/ThongBao";
 import { useSelector } from "react-redux";
-import moment from 'moment';
+import moment from "moment";
 const numberPage = 10;
 //DANH SÁCH SẢN PHẨM
 
@@ -23,9 +23,8 @@ function formatDate(date) {
   return moment(date).format("DD-MM-YYYY HH:mm:ss");
 }
 
-
 export default function ListProduct() {
-  const reload = useSelector((state) => state.getreloadPage);
+  const reload = useSelector(state => state.getreloadPage);
   //MODEL EDIT
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
@@ -60,7 +59,7 @@ export default function ListProduct() {
 
     const columns = Array.from(rowElement.querySelectorAll("label"));
     const id = columns[1].innerText;
-    
+
     setModalData({
       id,
       datacategory,
@@ -74,11 +73,13 @@ export default function ListProduct() {
     setModalData({});
   };
 
-
-  useEffect(() => {
-    getdataProduct();
-    getdataCategory();
-  }, [reload]);
+  useEffect(
+    () => {
+      getdataProduct();
+      getdataCategory();
+    },
+    [reload]
+  );
 
   const getdataProduct = async () => {
     const url = `/api/product/find?key=${valueOption}&valueKeyword=${textInput}&idCategoryItem=${valueCategoryItem}&minQuantity=${numberMinValue}&maxQuantity=${numberMaxValue}&status=&stocking=&shop=1`;
@@ -197,19 +198,19 @@ export default function ListProduct() {
           </select>
           {valueCategory !== ""
             ? <select
-              value={valueCategoryItem}
-              onChange={handleChangeCategoryItem}
-              className={`${style.optionSelectType}`}
-            >
-              <option value="">Phân Loại Sản Phẩm...</option>
-              {categoryItemData.map((value, index) => {
-                return (
-                  <option key={index} value={value.id}>
-                    {value.type_category_item}
-                  </option>
-                );
-              })}
-            </select>
+                value={valueCategoryItem}
+                onChange={handleChangeCategoryItem}
+                className={`${style.optionSelectType}`}
+              >
+                <option value="">Phân Loại Sản Phẩm...</option>
+                {categoryItemData.map((value, index) => {
+                  return (
+                    <option key={index} value={value.id}>
+                      {value.type_category_item}
+                    </option>
+                  );
+                })}
+              </select>
             : null}
         </div>
         <div className={`${style.storge}`}>
@@ -248,72 +249,73 @@ export default function ListProduct() {
             <label className={style.column}>Ngày tạo</label>
             <label className={style.column} />
           </div>
-          {listPage.map((value, index) =>
-            <div key={index} className={style.tableBody}>
-              <label className={style.column}>
-                {(currentPage - 1) * numberPage + index + 1}
-              </label>
-              <label className={style.column}>
-                {value[0]}
-              </label>
-              <label className={style.column}>
-                {Array.isArray(value[1])
-                  ? value[1].map((item, index) =>
-                    <img
-                      key={index}
-                      className={style.image}
-                      src={`http://localhost:8080/api/uploadImageProduct/${item}`}
-                      alt="Hình Ảnh"
-                    />
-                  )
-                  : <img
-                    className={style.image}
-                    src={`/images/nullImage.png`}
-                    alt="Hình Ảnh"
-                  />}
-              </label>
-              <label className={style.column}>
-                {value[2]}
-              </label>
-              <label className={style.column}>
-                {value[3]}
-              </label>
-              <label className={style.column}>
-                {formatCurrency(value[4], 0)}
-              </label>
-              <label className={style.column}>
-                <span
-                  className={style.status}
-                  style={{
-                    backgroundColor:
-                      value[6] === 0
-                        ? "#34219E"
-                        : value[6] === 1
-                          ? "green"
-                          : value[6] === 2 ? "red" : "#E74C3C"
-                  }}
-                  value={`${value[6]}`}
-                >
-                  {value[6] === 0
-                    ? "Chờ Phê Duyệt"
-                    : value[6] === 1
-                      ? "Đang Hoạt Động"
-                      : value[6] === 2
-                        ? "Dừng Hoạt Động"
-                        : value[6] === 3 ? "Cấm hoạt động" : "Lỗi"}
-                </span>
-              </label>
-              <label className={style.column}>
-                {formatDate(value[5])}
-              </label>
-              <label className={style.column}>
-                <i
-                  className={`bi bi-pencil-square ${style.buttonEdit}`}
-                  onClick={handleClickEditProduct}
-                />
-              </label>
-            </div>
-          )}
+          {listPage &&
+            listPage.map((value, index) =>
+              <div key={index} className={style.tableBody}>
+                <label className={style.column}>
+                  {(currentPage - 1) * numberPage + index + 1}
+                </label>
+                <label className={style.column}>
+                  {value[0]}
+                </label>
+                <label className={style.column}>
+                  {Array.isArray(value[1])
+                    ? value[1].map((item, index) =>
+                        <img
+                          key={index}
+                          className={style.image}
+                          src={`http://localhost:8080/api/uploadImageProduct/${item}`}
+                          alt="Hình Ảnh"
+                        />
+                      )
+                    : <img
+                        className={style.image}
+                        src={`/images/nullImage.png`}
+                        alt="Hình Ảnh"
+                      />}
+                </label>
+                <label className={style.column}>
+                  {value[2]}
+                </label>
+                <label className={style.column}>
+                  {value[3]}
+                </label>
+                <label className={style.column}>
+                  {formatCurrency(value[4], 0)}
+                </label>
+                <label className={style.column}>
+                  <span
+                    className={style.status}
+                    style={{
+                      backgroundColor:
+                        value[6] === 0
+                          ? "#34219E"
+                          : value[6] === 1
+                            ? "green"
+                            : value[6] === 2 ? "red" : "#E74C3C"
+                    }}
+                    value={`${value[6]}`}
+                  >
+                    {value[6] === 0
+                      ? "Chờ Phê Duyệt"
+                      : value[6] === 1
+                        ? "Đang Hoạt Động"
+                        : value[6] === 2
+                          ? "Dừng Hoạt Động"
+                          : value[6] === 3 ? "Cấm hoạt động" : "Lỗi"}
+                  </span>
+                </label>
+                <label className={style.column}>
+                  {formatDate(value[5])}
+                </label>
+                <label className={style.column}>
+                  <i
+                    className={`bi bi-pencil-square ${style.buttonEdit}`}
+                    onClick={handleClickEditProduct}
+                  />
+                </label>
+              </div>
+            )}
         </div>
         <div className={`${style.buttonPage}`}>
           <Nav.Link className={`btn`} onClick={() => handlePageChange(1)}>
@@ -321,11 +323,11 @@ export default function ListProduct() {
           </Nav.Link>
           {currentPage - 1 > 0
             ? <Nav.Link
-              className={`btn`}
-              onClick={() => handlePageChange(currentPage - 1)}
-            >
-              {currentPage - 1}
-            </Nav.Link>
+                className={`btn`}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                {currentPage - 1}
+              </Nav.Link>
             : null}
 
           <Nav.Link className={`btn ${style.btnActivePage}`}>
@@ -333,11 +335,11 @@ export default function ListProduct() {
           </Nav.Link>
           {currentPage + 1 <= totalPages
             ? <Nav.Link
-              className={`btn`}
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              {currentPage + 1}
-            </Nav.Link>
+                className={`btn`}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                {currentPage + 1}
+              </Nav.Link>
             : null}
           <Nav.Link
             className={`btn`}

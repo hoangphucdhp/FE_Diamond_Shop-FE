@@ -1,12 +1,33 @@
 import React from 'react';
 import MainNavbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import axios from 'axios';
+import { useState } from 'react';
+import { useParams } from 'react-router';
+import { useEffect } from 'react';
 function OrderReceipt() {
+  const { id } = useParams();
+  const [order, setOrder] = useState();
+  const fectAPI = () => {
+    axios
+      .get(`http://localhost:8080/api/order/find/${id}`)
+      .then((response) => {
+        console.log(response.data.data)
+        setOrder(response.data.data)
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+  useEffect(() => {
+    fectAPI();
+  }, [])
+  console.log(order)
   return (
     <>
-     <nav >
-          <MainNavbar />
-        </nav>
+      <nav >
+        <MainNavbar />
+      </nav>
       <div className="container-fluid mt-2">
         <div className="container">
           {/* Title */}
@@ -22,10 +43,10 @@ function OrderReceipt() {
                 <div className="card-body">
                   <div className="mb-3 d-flex justify-content-between">
                     <div>
-                      <span className="me-3">22-11-2021</span>
-                      <span className="me-3">#16123222</span>
-                      <span className="me-3">Visa -1234</span>
-                      <span className="badge rounded-pill bg-info">Đang giao</span>
+                      <span className="me-3">{order?.create_date}</span>
+                      <span className="me-3">HD23{order?.id}</span>
+                      {/* <span className="me-3">Visa -1234</span> */}
+                      {/* <span className="badge rounded-pill bg-info">{order.status[order.status.length - 1].status.name}</span> */}
                     </div>
                     <div className="d-flex">
                       {/* <button className="btn btn-link p-0 me-3 d-none d-lg-block btn-icon-text"><i className="bi bi-download"></i> <span className="text">Invoice</span></button> */}
@@ -42,35 +63,37 @@ function OrderReceipt() {
                   </div>
                   <table className="table table-borderless">
                     <tbody>
-                      <tr>
-                        <td>
-                          <div className="d-flex mb-2">
-                            <div className="flex-shrink-0">
-                              <img src="https://www.bootdey.com/image/280x280/87CEFA/000000" style={{width: '80px', height: '80px'}} alt="" width="35" className="img-fluid" />
+                      {order?.orderDetails.map((item, index) => (
+                        <tr key={index}>
+                          <td>
+                            <div className="d-flex mb-2">
+                              <div className="flex-shrink-0">
+                                <img src={`http://localhost:8080/api/uploadImageProduct/${item?.productOrder?.image_product[0].url}`} style={{ width: '80px', height: '80px' }} alt="" width="35" className="img-fluid" />
+                              </div>
+                              <div className="flex-lg-grow-1 ms-3">
+                                <h6 className="small mb-0 text-start">{item.productOrder.product_name}</h6>
+                                {/* <h6 className="small mt-2 text-start">Màu: Black</h6> */}
+                                <h6 className="small mt-2 text-start">Số lượng: {item.quantity}</h6>
+                              </div>
                             </div>
-                            <div className="flex-lg-grow-1 ms-3">
-                              <h6 className="small mb-0 text-start">Wireless Headphones with Noise Cancellation Tru Bass Bluetooth HiFi</h6>
-                              <h6 className="small mt-2 text-start">Màu: Black</h6>
-                              <h6 className="small mt-2 text-start">Số lượng: 1</h6>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-end">$79.99</td>
-                      </tr>
+                          </td>
+                          <td className="text-end">Giá : ${item.productOrder.price}</td>
+                        </tr>
+                      ))}
                     </tbody>
                     <tfoot>
-                    
-                      <tr>
+
+                      {/* <tr>
                         <td colSpan="2" className='text-start'>Phí vận chuyển</td>
                         <td className="text-end">$20.00</td>
-                      </tr>
+                      </tr> 
                       <tr>
                         <td colSpan="2" className='text-start'>Giảm giá</td>
                         <td className="text-danger text-end">-$10.00</td>
-                      </tr>
+                      </tr>*/}
                       <tr className="fw-bold">
                         <td colSpan="2" className='text-start'>Tổng cộng</td>
-                        <td className="text-end">$169,98</td>
+                        <td className="text-end">${order?.total}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -82,16 +105,16 @@ function OrderReceipt() {
                   <div className="row">
                     <div className="col-lg-6">
                       <h3 className="h6">Thông tin thanh toán</h3>
-                      <p>Visa -1234 <br />
-                        Tổng cộng: $169,98 <span className="badge bg-success rounded-pill">Đã thanh toán</span></p>
+                      <p><br />
+                        Tổng cộng: $ {order?.total} <span className="badge bg-success rounded-pill">Thanh toán tiền mặt</span></p>
                     </div>
                     <div className="col-lg-6">
                       <h3 className="h6">Địa chỉ thanh toán</h3>
                       <address>
-                        <strong>John Doe</strong><br />
-                        1355 Market St, Suite 900<br />
-                        San Francisco, CA 94103<br />
-                        <abbr title="Phone">P:</abbr> (123) 456-7890
+                        <strong>{order?.address.name}</strong><br />
+                        {order?.address.address}, {order?.address.ward}, {order?.address.district},<br />
+                        {order?.address.city}<br />
+                        <abbr title="Phone">P:</abbr> {order?.address.phone}
                       </address>
                     </div>
                   </div>
@@ -103,7 +126,7 @@ function OrderReceipt() {
               <div className="card mb-4">
                 <div className="card-body">
                   <h3 className="h6">Ghi chú</h3>
-                  <p>Sed enim, faucibus litora velit vestibulum habitasse. Cras lobortis cum sem aliquet mauris rutrum. Sollicitudin. Morbi, sem tellus vestibulum porttitor.</p>
+                  <p></p>
                 </div>
               </div>
               <div className="card mb-4">
@@ -115,10 +138,11 @@ function OrderReceipt() {
                   <hr />
                   <h3 className="h6">Địa chỉ</h3>
                   <address>
-                    <strong>John Doe</strong><br />
-                    1355 Market St, Suite 900<br />
-                    San Francisco, CA 94103<br />
-                    <abbr title="Phone">P:</abbr> (123) 456-7890
+                    <strong>{order?.address.name}</strong><br />
+                    {order?.address.address}, {order?.address.ward}, {order?.address.district},<br />
+                    {order?.address.city}<br />
+                    <abbr title="Phone">P:</abbr> {order?.address.phone}
+
                   </address>
                 </div>
               </div>
@@ -127,8 +151,8 @@ function OrderReceipt() {
         </div>
       </div>
       <div id="footer">
-          <Footer />
-        </div>
+        <Footer />
+      </div>
     </>
   );
 }

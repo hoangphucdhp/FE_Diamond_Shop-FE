@@ -122,7 +122,7 @@ function ListProduct() {
             <label className={style.column} />
             <label className={style.column} />
           </div>
-          {listPage.map((value, index) =>
+          {listPage && listPage.map((value, index) =>
             <div key={index} className={style.tableBody}>
               <label className={style.column}>
                 {currentPage * numberPage - numberPage + index + 1}

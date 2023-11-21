@@ -2,21 +2,87 @@ import React from "react";
 import "../css/user/checkout.css";
 import MainNavbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { cartSelector } from "../../actions/actions";
+import cartSilce from "../../Reducer/cartSilce";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
-class CheckoutForm extends React.Component {
-  render() {
-    return (
-      <>
-        <nav>
-          <MainNavbar />
-        </nav>
-        <div className="container mt-4">
-          <div className="row">
-            <div className="col-xl-8">
+const CheckoutForm = () => {
+  const [user, setUser] = useState();
+  const [addressDefault, setAddressDefault] = useState();
+  const cart = useSelector(cartSelector);
+  const dispatch = useDispatch();
+
+  const navigation = useNavigate();
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/api/account/5`)
+      .then((response) => {
+        setUser(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error loading shop data:", error);
+      });
+    axios
+      .get(`http://localhost:8080/api/account/5/address`)
+      .then((response) => {
+        setAddressDefault(response.data.data);
+      })
+      .catch((error) => {
+        console.error("Error loading shop data:", error);
+      });
+  }, []);
+
+  let orderDetails = [];
+  let amount = 0;
+  cart.map((item) => {
+    amount += item.product.price * item.quantity;
+
+    orderDetails.push({
+      productOrder: item.product,
+      quantity: item.quantity
+    });
+  });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    let order = {
+      // accountOrder: user,
+      orderDetails: orderDetails,
+      total: amount,
+      address: addressDefault
+    };
+    axios
+      .post(`http://localhost:8080/api/order/create/account/${user.id}`, order)
+      .then((response) => {
+        // console.log(response.data.data)
+        if (response.data.status == "SUCCESS") {
+          dispatch(cartSilce.actions.removeAll());
+          alert("Đặt hàng thành công");
+          navigation("/order");
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading shop data:", error);
+      });
+    // console.log(order);
+  };
+  return (
+    <>
+      <nav>
+        <MainNavbar />
+      </nav>
+      <div className="container mt-4">
+        <div className="row">
+          <div className="col-xl-8">
+            <form>
               <div className="card">
                 <div className="card-body">
                   <ol className="activity-checkout mb-0 px-4 mt-3">
-                    <li className="checkout-item">
+                    {/* <li className="checkout-item">
                       <div className="avatar checkout-icon p-1">
                         <div className="avatar-title rounded-circle bg-primary">
                           <i className="bx bxs-receipt text-white font-size-20"></i>
@@ -31,75 +97,77 @@ class CheckoutForm extends React.Component {
                             Vui lòng điền đầy đủ tất cả thông tin bên dưới
                           </p>
                           <div className="mb-3">
-                            <form>
-                              <div>
-                                <div className="row">
-                                  <div className="col-lg-4">
-                                    <div className="mb-3">
-                                      <label
-                                        className="form-label"
-                                        htmlFor="billing-name"
-                                      >
-                                        Tên
-                                      </label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        id="billing-name"
-                                        placeholder="Vui lòng nhập tên"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-4">
-                                    <div className="mb-3">
-                                      <label
-                                        className="form-label"
-                                        htmlFor="billing-email-address"
-                                      >
-                                        Địa chỉ email
-                                      </label>
-                                      <input
-                                        type="email"
-                                        className="form-control"
-                                        id="billing-email-address"
-                                        placeholder="Vui lòng nhập email"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="col-lg-4">
-                                    <div className="mb-3">
-                                      <label
-                                        className="form-label"
-                                        htmlFor="billing-phone"
-                                      >
-                                        Số điện thoại
-                                      </label>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        id="billing-phone"
-                                        placeholder="Vui lòng nhập số điện thoại"
-                                      />
-                                    </div>
+                            <div>
+                              <div className="row">
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="billing-name"
+                                    >
+                                      Tên
+                                    </label>
+                                    <input
+                                      type="text"
+
+                                      className="form-control"
+                                      id="billing-name"
+                                      placeholder="Vui lòng nhập tên"
+                                    />
                                   </div>
                                 </div>
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="billing-email-address"
+                                    >
+                                      Địa chỉ email
+                                    </label>
+                                    <input
 
-                                <div className="mb-3">
-                                  <label
-                                    className="form-label"
-                                    htmlFor="billing-address"
-                                  >
-                                    Địa chỉ
-                                  </label>
-                                  <textarea
-                                    className="form-control"
-                                    id="billing-address"
-                                    rows="3"
-                                    placeholder="Vui lòng nhập đầy đủ địa chỉ"
-                                  ></textarea>
+                                      type="email"
+                                      className="form-control"
+                                      id="billing-email-address"
+                                      placeholder="Vui lòng nhập email"
+                                    />
+                                  </div>
                                 </div>
+                                <div className="col-lg-4">
+                                  <div className="mb-3">
+                                    <label
+                                      className="form-label"
+                                      htmlFor="billing-phone"
+                                    >
+                                      Số điện thoại
+                                    </label>
+                                    <input
 
-                                {/* <div className="row">
+                                      type="text"
+                                      className="form-control"
+                                      id="billing-phone"
+                                      placeholder="Vui lòng nhập số điện thoại"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mb-3">
+                                <label
+                                  className="form-label"
+                                  htmlFor="billing-address"
+                                >
+                                  Địa chỉ
+                                </label>
+                                <textarea
+                                  className="form-control"
+                                  id="billing-address"
+                                  rows="3"
+                                  placeholder="Vui lòng nhập đầy đủ địa chỉ"
+                                ></textarea>
+                              </div>
+
+                               <div className="row">
                                   <div className="col-lg-4">
                                     <div className="mb-4 mb-lg-0">
                                       <label className="form-label">Country</label>
@@ -129,13 +197,13 @@ class CheckoutForm extends React.Component {
                                       <input type="text" className="form-control" id="zip-code" placeholder="Enter Postal code" />
                                     </div>
                                   </div>
-                                </div> */}
-                              </div>
-                            </form>
+                                </div> 
+                            </div>
+
                           </div>
                         </div>
                       </div>
-                    </li>
+                    </li>*/}
                     <li className="checkout-item">
                       <div className="avatar checkout-icon p-1">
                         <div className="avatar-title rounded-circle bg-primary">
@@ -166,14 +234,16 @@ class CheckoutForm extends React.Component {
                                         Địa chỉ
                                       </span>
                                       <span className="fs-14 mb-2 d-block">
-                                        Bradley McMillian
+                                        {addressDefault?.name}
                                       </span>
                                       <span className="text-muted fw-normal text-wrap mb-1 d-block">
-                                        109 Clarksburg Park Road Show Low, AZ
-                                        85901
+                                        {addressDefault?.address} ,{" "}
+                                        {addressDefault?.ward} ,{" "}
+                                        {addressDefault?.district} ,
+                                        {addressDefault?.city}
                                       </span>
                                       <span className="text-muted fw-normal d-block">
-                                        Mo. 012-345-6789
+                                        {addressDefault?.phone}
                                       </span>
                                     </div>
                                   </label>
@@ -208,12 +278,10 @@ class CheckoutForm extends React.Component {
                           </h5>
                         </div>
                         <div>
-                        <p className="text-muted text-truncate mb-4">
+                          <p className="text-muted text-truncate mb-4">
                             Phương thức thanh toán
                           </p>
                           <div className="row">
-                            
-
                             <div className="col-lg-3 col-sm-6">
                               <div>
                                 <label className="card-radio-label">
@@ -247,47 +315,53 @@ class CheckoutForm extends React.Component {
                 </div>
                 <div className="col">
                   <div className="text-end mt-2 mt-sm-0">
-                    <a href="#" className="btn btn-success">
+                    <button
+                      type="submit"
+                      onClick={handleSubmit}
+                      className="btn btn-success"
+                    >
                       <i className="fa-solid fa-cart-shopping me-1"></i> Thanh
                       toán{" "}
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="col-xl-4">
-              <div className="card checkout-order-summary">
-                <div className="card-body">
-                  <div className="p-3 bg-light mb-3">
-                    <h5 className="font-size-16 mb-0">
-                      Tóm tắt giỏ hàng{" "}
-                      <span className="float-end ms-2">#MN0124</span>
-                    </h5>
-                  </div>
-                  <div className="table-responsive">
-                    <table className="table table-centered mb-0 table-nowrap">
-                      <thead>
-                        <tr>
-                          <th
-                            className="border-top-0"
-                            style={{ width: "110px" }}
-                            scope="col"
-                          >
-                            Sản phẩm
-                          </th>
-                          <th className="border-top-0" scope="col">
-                            Mô tả sản phẩm
-                          </th>
-                          <th className="border-top-0" scope="col">
-                            Giá
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
+            </form>
+          </div>
+          <div className="col-xl-4">
+            <div className="card checkout-order-summary">
+              <div className="card-body">
+                <div className="p-3 bg-light mb-3">
+                  <h5 className="font-size-16 mb-0">
+                    Tóm tắt giỏ hàng{" "}
+                    <span className="float-end ms-2">#MN0124</span>
+                  </h5>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-centered mb-0 table-nowrap">
+                    <thead>
+                      <tr>
+                        <th
+                          className="border-top-0"
+                          style={{ width: "110px" }}
+                          scope="col"
+                        >
+                          Sản phẩm
+                        </th>
+                        <th className="border-top-0" scope="col">
+                          Mô tả sản phẩm
+                        </th>
+                        <th className="border-top-0" scope="col">
+                          Giá
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cart.map((item, index) => (
                         <tr>
                           <th scope="row">
                             <img
-                              src="images/best-saler-1.jpg"
+                              src={`http://localhost:8080/api/uploadImageProduct/${item.product.image_product[0].url}`}
                               style={{ width: "80px", height: "80px" }}
                               alt="product-img"
                               title="product-img"
@@ -297,7 +371,7 @@ class CheckoutForm extends React.Component {
                           <td>
                             <h5 className="font-size-16 text-truncate">
                               <a href="#" className="text-dark">
-                                Waterproof Mobile Phone
+                                {item.product.product_name}
                               </a>
                             </h5>
                             <p className="text-muted mb-0">
@@ -307,77 +381,76 @@ class CheckoutForm extends React.Component {
                               <i className="bx bxs-star text-warning"></i>
                               <i className="bx bxs-star-half text-warning"></i>
                             </p>
-                            <p className="text-muted mb-0 mt-1">$ 260 x 2</p>
-                          </td>
-                          <td>$ 520</td>
-                        </tr>
-                        <tr>
-                          <th scope="row">
-                            <img
-                              src="images/best-saler-1.jpg"
-                              style={{ width: "80px", height: "80px" }}
-                              alt="product-img"
-                              title="product-img"
-                              className="avatar-lg rounded"
-                            />
-                          </th>
-                          <td>
-                            <h5 className="font-size-16 text-truncate">
-                              <a href="#" className="text-dark">
-                                Smartphone Dual Camera
-                              </a>
-                            </h5>
-                            <p className="text-muted mb-0">
-                              <i className="bx bxs-star text-warning"></i>
-                              <i className="bx bxs-star text-warning"></i>
-                              <i className="bx bxs-star text-warning"></i>
-                              <i className="bx bxs-star text-warning"></i>
+                            <p className="text-muted mb-0 mt-1">
+                              {item.product.price} x {item.quantity}
                             </p>
-                            <p className="text-muted mb-0 mt-1">$ 260 x 1</p>
                           </td>
-                          <td>$ 260</td>
+                          <td>$ {item.product.price * item.quantity}</td>
                         </tr>
+                      ))}
 
-                        <tr>
-                          <td colSpan="2">
-                            <p className="font-size-4 text-start">
-                              Giảm giá :
-                            </p>
-                          </td>
-                          <td>- $ 78</td>
-                        </tr>
+                      {/* <tr>
+                        <th scope="row">
+                          <img
+                            src="images/best-saler-1.jpg"
+                            style={{ width: "80px", height: "80px" }}
+                            alt="product-img"
+                            title="product-img"
+                            className="avatar-lg rounded"
+                          />
+                        </th>
+                        <td>
+                          <h5 className="font-size-16 text-truncate">
+                            <a href="#" className="text-dark">
+                              Smartphone Dual Camera
+                            </a>
+                          </h5>
+                          <p className="text-muted mb-0">
+                            <i className="bx bxs-star text-warning"></i>
+                            <i className="bx bxs-star text-warning"></i>
+                            <i className="bx bxs-star text-warning"></i>
+                            <i className="bx bxs-star text-warning"></i>
+                          </p>
+                          <p className="text-muted mb-0 mt-1">$ 260 x 1</p>
+                        </td>
+                        <td>$ 260</td>
+                      </tr> */}
 
-                        <tr>
-                          <td colSpan="2">
-                            <p className="font-size-4 text-start">
-                              Phí vận chuyển :
-                            </p>
-                          </td>
-                          <td>$ 25</td>
-                        </tr>
+                      <tr>
+                        <td colSpan="2">
+                          <p className="font-size-4 text-start">Giảm giá :</p>
+                        </td>
+                        <td>- $ 0</td>
+                      </tr>
 
-                        <tr className="bg-light">
-                          <td colSpan="2">
-                            <p className="font-size-4 text-start">
-                              Tổng cộng:
-                            </p>
-                          </td>
-                          <td>$ 745.2</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                      <tr>
+                        <td colSpan="2">
+                          <p className="font-size-4 text-start">
+                            Phí vận chuyển :
+                          </p>
+                        </td>
+                        <td>$ 0</td>
+                      </tr>
+
+                      <tr className="bg-light">
+                        <td colSpan="2">
+                          <p className="font-size-4 text-start">Tổng cộng:</p>
+                        </td>
+                        <td>$ {amount}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div id="footer">
-          <Footer />
-        </div>
-      </>
-    );
-  }
-}
+      </div>
+      <div id="footer">
+        <Footer />
+      </div>
+    </>
+  );
+};
 
 export default CheckoutForm;

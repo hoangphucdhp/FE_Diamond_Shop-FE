@@ -5,20 +5,21 @@ import axios from "axios";
 
 const numberPage = 10;
 function ListAccount() {
-
   const [accounts, setAccounts] = useState([]);
   const fecthAPi = () => {
-    axios.get(`http://localhost:8080/api/account/getAll`)
+    axios
+      .get(`http://localhost:8080/api/account/getAll`)
       .then((response) => {
-        setAccounts(response.data.data)
-      }).catch((e) => {
-        console.log(e)
+        setAccounts(response.data.data);
       })
-  }
+      .catch((e) => {
+        console.log(e);
+      });
+  };
   useEffect(() => {
-    fecthAPi()
-  },[])
-  console.log(accounts)
+    fecthAPi();
+  }, []);
+  console.log(accounts);
   return (
     <React.Fragment>
       <div className={style.listAccount}>
@@ -35,32 +36,39 @@ function ListAccount() {
             <label className={style.column}>Trạng thái</label>
             <label className={style.column}></label>
           </div>
-          {accounts?.content?.map((value, index) => (
-            <div key={index} className={style.tableBody}>
-              <label className={style.column}>
-                {index + 1}
-              </label>
-              <label className={style.column}>{value.username}</label>
-              <label className={style.column}>{value.infoAccount?.fullname}</label>
-              <label className={style.column}>{value.infoAccount?.gender}</label>
-              <label className={style.column}>{value.infoAccount?.phone}</label>
-              <label className={style.column}>{value.infoAccount?.email}</label>
-              <label className={style.column}>{value.create_date}</label>
-              <label className={style.column}>
-                <span
-                  className={style.statusAccount}
-                  style={{ backgroundColor: value.status ? "green" : "red" }}
-                >
-                  {value.status ? "Đang hoạt động" : "Dừng hoạt động"}
-                </span>
-              </label>
-              <label className={style.column}>
-                <Nav.Link href="#edit">
-                  <i className={`bi bi-pencil-square`}></i>
-                </Nav.Link>
-              </label>
-            </div>
-          ))}
+          {accounts &&
+            accounts?.content?.map((value, index) => (
+              <div key={index} className={style.tableBody}>
+                <label className={style.column}>{index + 1}</label>
+                <label className={style.column}>{value.username}</label>
+                <label className={style.column}>
+                  {value.infoAccount?.fullname}
+                </label>
+                <label className={style.column}>
+                  {value.infoAccount?.gender}
+                </label>
+                <label className={style.column}>
+                  {value.infoAccount?.phone}
+                </label>
+                <label className={style.column}>
+                  {value.infoAccount?.email}
+                </label>
+                <label className={style.column}>{value.create_date}</label>
+                <label className={style.column}>
+                  <span
+                    className={style.statusAccount}
+                    style={{ backgroundColor: value.status ? "green" : "red" }}
+                  >
+                    {value.status ? "Đang hoạt động" : "Dừng hoạt động"}
+                  </span>
+                </label>
+                <label className={style.column}>
+                  <Nav.Link href="#edit">
+                    <i className={`bi bi-pencil-square`}></i>
+                  </Nav.Link>
+                </label>
+              </div>
+            ))}
         </div>
       </div>
     </React.Fragment>

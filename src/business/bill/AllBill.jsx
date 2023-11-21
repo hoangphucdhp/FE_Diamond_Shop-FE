@@ -192,7 +192,7 @@ export default function AllBill() {
             </tr>
           </thead>
           <tbody>
-            {shop?.content?.map((value, index) => (
+            {shop && shop?.content?.map((value, index) => (
               <tr key={index}>
                 <th>{index + 1}</th>
                 <td>{value.id}</td>

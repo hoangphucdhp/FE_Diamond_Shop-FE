@@ -74,7 +74,7 @@ export default function AddStorge() {
             className={`${style.optionSelect} ${style.input}`}
           >
             <option value="">Sản Phẩm...</option>
-            {listProduct.map((value, index) =>
+            {listProduct && listProduct.map((value, index) =>
               <option key={index} value={value.id}>
                 {value.product_name}
               </option>

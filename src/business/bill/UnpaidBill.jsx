@@ -8,7 +8,7 @@ const numberProductPage = 10;
 export default function UnpaidBill() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
-  
+
   function handleClickChiTiet(order) {
     // const tdElement = event.currentTarget.parentElement;
 
@@ -26,7 +26,7 @@ export default function UnpaidBill() {
   //FORM SEARCH
   const [selectedOption, setSelectedOption] = React.useState("");
   const [valueOption, setValueOption] = React.useState("");
-  const handleChangeOption = (event) => {
+  const handleChangeOption = event => {
     const selectedOptionValue = event.target.value;
     let text = "";
     setValueOption(selectedOptionValue);
@@ -44,32 +44,37 @@ export default function UnpaidBill() {
   const [orders, setOrders] = useState([]);
   const [load, isLoad] = useState(false);
   const fetchApi = () => {
-    axios.get(`http://localhost:8080/api/order/findByStatus/1`)
-      .then((reponse) => {
-        if (reponse.data.status == 'SUCCESS') {
-          setOrders(reponse.data.data)
+    axios
+      .get(`http://localhost:8080/api/order/findByStatus/1`)
+      .then(reponse => {
+        if (reponse.data.status == "SUCCESS") {
+          setOrders(reponse.data.data);
         }
       })
-      .catch((e) => {
-        console.log(e)
-      })
-  }
-  useEffect(() => {
-    fetchApi()
-  }, [load])
-  console.log(orders)
-  const handleOrder = (id) => {
-    axios.put(`http://localhost:8080/api/order/update/${id}/account/${5}?status=2`)
-      .then((reponse) => {
-        if (reponse.data.status == 'SUCCESS') {
-          alert("xác nhận đơn thành công")
+      .catch(e => {
+        console.log(e);
+      });
+  };
+  useEffect(
+    () => {
+      fetchApi();
+    },
+    [load]
+  );
+  console.log(orders);
+  const handleOrder = id => {
+    axios
+      .put(`http://localhost:8080/api/order/update/${id}/account/${5}?status=2`)
+      .then(reponse => {
+        if (reponse.data.status == "SUCCESS") {
+          alert("xác nhận đơn thành công");
           isLoad(!load);
         }
       })
-      .catch((e) => {
-        console.log(e)
-      })
-  }
+      .catch(e => {
+        console.log(e);
+      });
+  };
   return (
     <React.Fragment>
       <div className={`${style.formSearch}`}>
@@ -86,16 +91,16 @@ export default function UnpaidBill() {
           className={`${style.inputSearch}`}
           type="text"
           placeholder={`${selectedOption ? selectedOption : "Tìm kiếm"}...`}
-        ></input>
+        />
         <button className={`${style.buttonSearch}`}>Tìm Kiếm</button>
       </div>
       <div className={`${style.updateStatusAll} mt-4 mb-3`}>
         <div className={`${style.cardHeadingModel}`}>
           {/* {listUnpaid.length} */}
-           Đơn hàng
+          Đơn hàng
         </div>
         <span className={`${style.buttonChangeStatus}`}>
-          <i class="bi bi-receipt-cutoff"></i> Duyệt Hàng Loạt
+          <i class="bi bi-receipt-cutoff" /> Duyệt Hàng Loạt
         </span>
       </div>
       <div className={`${style.cardContainerTable}`}>
@@ -105,26 +110,42 @@ export default function UnpaidBill() {
               <th>#</th>
               <th>Mã Hóa Đơn</th>
               <th>Ngày Đặt Hàng</th>
-              <th></th>
-              <th></th>
+              <th />
+              <th />
             </tr>
           </thead>
           <tbody>
-            {orders.map((value, index) => (
-              <tr key={index}>
-                <th>{index + 1}</th>
-                <td>{value.id}</td>
-                <td>{value.create_date}</td>
-                <td onClick={() => {
-                  handleClickChiTiet(value)
-                }}>Xem Chi Tiết</td>
-                <td>
-                  <button onClick={() => {
-                    handleOrder(value.id)
-                  }} className={`${style.buttonSubmit}`}>Duyệt Đơn</button>
-                </td>
-              </tr>
-            ))}
+            {orders &&
+              orders.map((value, index) =>
+                <tr key={index}>
+                  <th>
+                    {index + 1}
+                  </th>
+                  <td>
+                    {value.id}
+                  </td>
+                  <td>
+                    {value.create_date}
+                  </td>
+                  <td
+                    onClick={() => {
+                      handleClickChiTiet(value);
+                    }}
+                  >
+                    Xem Chi Tiết
+                  </td>
+                  <td>
+                    <button
+                      onClick={() => {
+                        handleOrder(value.id);
+                      }}
+                      className={`${style.buttonSubmit}`}
+                    >
+                      Duyệt Đơn
+                    </button>
+                  </td>
+                </tr>
+              )}
           </tbody>
         </table>
       </div>

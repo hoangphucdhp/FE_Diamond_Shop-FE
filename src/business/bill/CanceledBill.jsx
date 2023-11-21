@@ -109,7 +109,7 @@ export default function CanceledBill() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((value, index) => (
+            {orders && orders.map((value, index) => (
               <tr key={index}>
                 <th>{index + 1}</th>
                 <td>{value.id}</td>

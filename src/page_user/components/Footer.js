@@ -73,7 +73,7 @@ function Footer() {
           </div>
         </div>
       </div>
-      <div className={`certificate`}>
+      {/* <div className={`certificate`}>
         <div className={`column`}>
           <div className={`heading`}> © 2023 - DIAMOND FASHION</div>
           <div className={`content`}>
@@ -84,7 +84,7 @@ function Footer() {
         <div className={`column`}>
           <img src="/images/bo-cong-thuong.jpg" alt=""></img>
         </div>
-      </div>
+      </div> */}
     </React.Fragment>
   );
 }

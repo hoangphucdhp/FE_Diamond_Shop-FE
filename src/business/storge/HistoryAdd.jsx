@@ -15,10 +15,10 @@ function HistoryAdd() {
   const getdataProducts = async () => {
     try {
       const response = await ProductService.getAllProduct(1);
-      const allProducts = response.flatMap(product => {
-        return product.listStorage.map(storageItem => ({
+      const allProducts = response.flatMap((product) => {
+        return product.listStorage.map((storageItem) => ({
           ...product,
-          storageItem,
+          storageItem
         }));
       });
 
@@ -50,42 +50,43 @@ function HistoryAdd() {
           <label className={style.column}>Số lượng</label>
           <label className={style.column}>Ngày thực hiện</label>
         </div>
-        {listProducts.map((product, index) => (
-          <div key={`${product.id}_${index}`} className={style.tableBody}>
-            <>
-              <label className={style.column}>{index + 1}</label>
-              <label className={style.column}>{product.id}</label>
-              <label className={style.column}>
-                {product?.image_product.length > 0 ? (
-                  product?.image_product.map((image) => (
+        {listProducts &&
+          listProducts.map((product, index) => (
+            <div key={`${product.id}_${index}`} className={style.tableBody}>
+              <>
+                <label className={style.column}>{index + 1}</label>
+                <label className={style.column}>{product.id}</label>
+                <label className={style.column}>
+                  {product?.image_product.length > 0 ? (
+                    product?.image_product.map((image) => (
+                      <img
+                        key={image.id}
+                        className={style.image}
+                        src={`http://localhost:8080/api/uploadImageProduct/${image.url}`}
+                        alt="Hình Ảnh"
+                      />
+                    ))
+                  ) : (
                     <img
-                      key={image.id}
                       className={style.image}
-                      src={`http://localhost:8080/api/uploadImageProduct/${image.url}`}
+                      src={`/images/nullImage.png`}
                       alt="Hình Ảnh"
                     />
-                  ))
-                ) : (
-                  <img
-                    className={style.image}
-                    src={`/images/nullImage.png`}
-                    alt="Hình Ảnh"
-                  />
-                )}
-              </label>
-              <label className={style.column}>{product.product_name}</label>
+                  )}
+                </label>
+                <label className={style.column}>{product.product_name}</label>
+                <label className={style.column}>
+                  {product.categoryItem_product.type_category_item}
+                </label>
+              </>
               <label className={style.column}>
-                {product.categoryItem_product.type_category_item}
+                {product.storageItem.quantity || ""}
               </label>
-            </>
-            <label className={style.column}>
-              {product.storageItem.quantity || ""}
-            </label>
-            <label className={style.column}>
-              {formatDate(product.storageItem.create_date) || ""}
-            </label>
-          </div>
-        ))}
+              <label className={style.column}>
+                {formatDate(product.storageItem.create_date) || ""}
+              </label>
+            </div>
+          ))}
       </div>
     </div>
   );

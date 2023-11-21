@@ -33,7 +33,7 @@ function ListCategory() {
             <label className={style.column}>Trạng thái</label>
             <label className={style.column}></label>
           </div>
-          {listCategory.map((value, index) => (
+          {listCategory && listCategory.map((value, index) => (
             <div key={value.id} className={style.tableBody}>
               <label className={style.column}>
                 {index}

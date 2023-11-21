@@ -2,16 +2,25 @@ import React, { useState, useRef } from "react";
 import "../page_user/css/user/profile.css";
 import MainNavbar from "../page_user/components/Navbar";
 import Footer from "../page_user/components/Footer";
+import DataAddress from "../service/AddressVietNam.json";
+import style from "../page_user/css/user/sale.module.css";
 
 export default function SalesRegistration() {
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
 
+  const listDataAddress = DataAddress;
+
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
+  const [ward, setWard] = useState("");
+  console.log(city + " " + district + " " + ward);
+
   const handleImageClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = event => {
     const file = event.target.files[0];
     if (file) {
       // Xử lý tệp ảnh đã chọn ở đây
@@ -24,13 +33,13 @@ export default function SalesRegistration() {
       <nav>
         <MainNavbar />
       </nav>
-      <div class="container mt-4">
-        <div class="row gutters">
-          <div class="col-xl-3 col-lg-3 col-md-12 col-sm-12 col-12">
-            <div class="card-profile h-100">
-              <div class="card-body">
-                <div class="account-settings">
-                  <div class="user-profile">
+      <div className="container mt-4">
+        <div className="row gutters">
+          <div className="col-xl-3 col-lg-3 col-md-12 col-sm-12 col-12">
+            <div className="card-profile h-100">
+              <div className="card-body">
+                <div className="account-settings">
+                  <div className="user-profile">
                     <div className="user-avatar" style={{ cursor: "pointer" }}>
                       <img
                         src={
@@ -48,10 +57,10 @@ export default function SalesRegistration() {
                         onChange={handleFileChange}
                       />
                     </div>
-                    <h5 class="user-name">Hình ảnh</h5>
-                    {/* <h6 class="user-date">Ngày tạo: 20/10/2023</h6> */}
+                    <h5 className="user-name">Hình ảnh</h5>
+                    {/* <h6 className="user-date">Ngày tạo: 20/10/2023</h6> */}
                   </div>
-                  {/* <div class="about">
+                  {/* <div className="about">
 
                     
                   </div> */}
@@ -59,53 +68,107 @@ export default function SalesRegistration() {
               </div>
             </div>
           </div>
-          <div class="col-xl-9 col-lg-9 col-md-12 col-sm-12 col-12">
-            <div class="card-profile h-100">
-              <div class="card-body">
-                <div class="row gutters">
-                  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
-                    <h6 class="mt-3 mb-2 text-primary">Thông tin cửa hàng</h6>
+          <div className="col-xl-9 col-lg-9 col-md-12 col-sm-12 col-12">
+            <div className="card-profile h-100">
+              <div className="card-body">
+                <div className="row gutters">
+                  <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <h6 className="mt-3 mb-2 text-primary">Thông tin cửa hàng</h6>
                   </div>
-                  <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                    <div class="form-group">
-                      <label for="ciTy">Tên cửa hàng:</label>
-                      <input type="name" class="form-control" id="ciTy" />
+                  <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+                    <div className="form-group">
+                      <input type="name" className={`form-control ${style.input}`} id="ciTy" placeholder="Tên cửa hàng" />
                     </div>
                   </div>
-                  <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                    <div class="form-group">
-                      <label for="ciTy">Thành phố:</label>
-                      <input type="name" class="form-control" id="ciTy" />
+                  <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+                    <div className="form-group">
+                      <select
+                        value={city}
+                        onChange={e => setCity(e.target.value)}
+                        className={style.input}
+                      >
+                        <option value="">Tỉnh/Thành Phố</option>
+                        {listDataAddress.map((valueCity, index) =>
+                          <option
+                            key={valueCity.codename}
+                            value={valueCity.codename}
+                          >
+                            {valueCity.name}
+                          </option>
+                        )}
+                      </select>
                     </div>
                   </div>
-                  <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                    <div class="form-group">
-                      <label for="Street">Đường:</label>
-                      <input type="name" class="form-control" id="Street" />
+                  <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+                    <div className="form-group">
+                      <select
+                        value={district}
+                        onChange={e => setDistrict(e.target.value)}
+                        className={style.input}
+                      >
+                        <option value="">Quận/Huyện</option>
+                        {listDataAddress.map(
+                          (valueCity, index) =>
+                            valueCity.codename === city
+                              ? valueCity.districts.map(
+                                  (valueDistrict, index) =>
+                                    <option
+                                      key={valueDistrict.codename}
+                                      value={valueDistrict.codename}
+                                    >
+                                      {valueDistrict.name}
+                                    </option>
+                                )
+                              : null
+                        )}
+                      </select>
                     </div>
                   </div>
 
-                  <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                    <div class="form-group">
-                      <label for="ward">Phường:</label>
-                      <input type="text" class="form-control" id="ward" />
+                  <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+                    <div className="form-group">
+                      <select
+                        value={district}
+                        onChange={e => setWard(e.target.value)}
+                        className={style.input}
+                      >
+                        <option value="">Phường/Xã/Trị Trấn</option>
+                        {listDataAddress.map(
+                          (valueCity, index) =>
+                            valueCity.codename === city
+                              ? valueCity.districts.map(
+                                  (valueDistrict, index) =>
+                                    valueDistrict.codename === district
+                                      ? valueDistrict.wards.map(
+                                          (valueWard, index) =>
+                                            <option
+                                              key={valueWard.codename}
+                                              value={valueWard.codename}
+                                            >
+                                              {valueWard.name}
+                                            </option>
+                                        )
+                                      : null
+                                )
+                              : null
+                        )}
+                      </select>
                     </div>
                   </div>
-                  <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                    <div class="form-group">
-                      <label for="adress">Địa chỉ chi tiết:</label>
-                      <input type="text" class="form-control" id="adress" />
+                  <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
+                    <div className="form-group">
+                      <input type="text" className={`form-control ${style.input}`} placeholder="Số nhà" id="adress" />
                     </div>
                   </div>
                 </div>
-                <div class="row gutters mt-4">
-                  <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
-                    <div class="text-right">
+                <div className="row gutters mt-4">
+                  <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                    <div className="text-right">
                       <button
                         type="button"
                         id="submit"
                         name="submit"
-                        class="btn btn-success"
+                        className="btn btn-success"
                       >
                         Đăng ký
                       </button>

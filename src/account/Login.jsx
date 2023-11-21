@@ -1,23 +1,85 @@
 import React from "react";
 import "../page_user/css/user/login.css";
+import style from "../page_user/css/user/login.module.css";
 import MainNavbar from "../page_user/components/Navbar";
 import Footer from "../page_user/components/Footer";
-import ReCAPTCHA from "react-google-recaptcha";
-// import "../css/user/register_login.css"
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { callAPI } from "../service/API";
+import Cookies from "js-cookie";
+
+function utf8_to_b64(str) {
+  return window.btoa(unescape(encodeURIComponent(str)));
+}
 
 function Login() {
-  const showPassword = (event) => {
-    const eye = event.currentTarget;
-    const inputPass = document.querySelector("input#password");
-    eye.classList.toggle("bi-eye");
-    if (eye.classList.contains("bi-eye")) {
-      inputPass.type = "text";
-    } else {
-      inputPass.type = "password";
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    try {
+      const response = await callAPI(`/api/account/login`, "POST", {
+        username,
+        password
+      });
+      if (response) {
+        const data = {
+          id_account: response.data.id,
+          username: response.data.username,
+          create_date: response.data.create_date,
+          role: response.data.listRole.map((value) => value.role.role_name),
+          address:[]
+        };
+        //INFO ACCOUNT
+        if (response.data.infoAccount && response.data.infoAccount.fullname) {
+          data.fullname = response.data.infoAccount.fullname;
+        }
+
+        if (response.data.infoAccount && response.data.infoAccount.image) {
+          data.image = response.data.infoAccount.image;
+        }
+
+        if (response.data.infoAccount && response.data.infoAccount.id_card) {
+          data.id_card = response.data.infoAccount.id_card;
+        }
+
+        if (response.data.infoAccount && response.data.infoAccount.phone) {
+          data.phone = response.data.infoAccount.phone;
+        }
+
+        if (response.data.infoAccount && response.data.infoAccount.email) {
+          data.email = response.data.infoAccount.email;
+        }
+
+        if (response.data.shop) {
+          data.shop = response.data.shop;
+        }
+
+        if (response.data.address_account) {
+          response.data.address_account.forEach(value => {
+            data.address.push(value);
+          });
+        }
+
+        if (response.data.infoAccount) {
+          data.gender = response.data.infoAccount.gender;
+        }
+
+        //ENCODE
+        const base64String = utf8_to_b64(JSON.stringify(data));
+
+        const timeCookie = new Date();
+        timeCookie.setTime(timeCookie.getTime() + 60 * 60 * 1000);
+        Cookies.set("accountLogin", base64String, { expires: timeCookie });
+        console.log(data)
+        navigate("/");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
-  const onChange = () => {};
   return (
     <>
       <nav>
@@ -31,26 +93,20 @@ function Login() {
                 <div className="row no-gutters">
                   <div className="col-lg-6">
                     <div className="p-5">
-                      <div className="mb-5">
-                        <h3 className="h4 font-weight-bold text-theme">
-                          Đăng nhập
-                        </h3>
-                      </div>
                       <h6 className="h5 mb-0">
                         Chào mừng đến với Diamond Shop!
                       </h6>
-                      <p className="text-muted mt-2 mb-5">
-                        Nhập địa chỉ email và mật khẩu của bạn để truy cập.
+                      <p className="text-muted mt-2 mb-3">
+                        Vui lòng điền đầy đủ thông tin đăng nhập.
                       </p>
                       <form>
                         <div className="form-group">
-                          <label htmlFor="exampleInputEmail1">
-                            Địa chỉ email
-                          </label>
+                          <label htmlFor="exampleInputEmail1">Tài khoản</label>
                           <input
                             typeName="email"
                             className="form-control"
                             id="exampleInputEmail1"
+                            onChange={(e) => setUsername(e.target.value)}
                           />
                         </div>
                         <div className="form-group mb-5 mt-4">
@@ -61,10 +117,15 @@ function Login() {
                             type="password"
                             className="form-control"
                             id="exampleInputPassword1"
+                            onChange={(e) => setPassword(e.target.value)}
                           />
                         </div>
-                        <div className="d-flex justify-content-between">
-                          <button type="submit" className="btn btn-primary">
+                        <div className="d-flex justify-content-between align-items-center ">
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={() => handleLogin()}
+                          >
                             Đăng nhập
                           </button>
                           <a
@@ -77,29 +138,21 @@ function Login() {
                         <div className="or mt-4">
                           <span>hoặc</span>
                         </div>
-                        <div className="row gutters">
-                          <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                            <button
-                              type="submit"
-                              className="btn btn-danger btn-block"
-                            >
-                              Twitter
-                            </button>
-                          </div>
-                          <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
-                            <button
-                              type="submit"
-                              className="btn btn-primary btn-block"
-                            >
-                              Facebook
-                            </button>
-                          </div>
+                        <div className={style.groupButtonAuth}>
+                          <button type="submit" className={style.button}>
+                            <i className="bi bi-twitter"></i> Đăng nhập với
+                            Twitter
+                          </button>
+                          <button type="submit" className={style.button}>
+                            <i className="bi bi-facebook"></i> Đăng nhập với
+                            Facebook
+                          </button>
                         </div>
                       </form>
                     </div>
                   </div>
                   <div className="col-lg-6 ">
-                    <div className="p-5">
+                    <div className="mt-3">
                       <img
                         src="images/san-thuong-mai-dien-tu-la-gi.webp"
                         alt=""

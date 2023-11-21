@@ -227,72 +227,73 @@ export default function ListProduct() {
             <label className={style.column}>Ngày tạo</label>
             <label className={style.column} />
           </div>
-          {listPage.map((value, index) =>
-            <div key={index} className={style.tableBody}>
-              <label className={style.column}>
-                {(currentPage - 1) * numberPage + index + 1}
-              </label>
-              <label className={style.column}>
-                {value[0]}
-              </label>
-              <label className={style.column}>
-                {Array.isArray(value[1])
-                  ? value[1].map((item, index) =>
-                      <img
-                        key={index}
+          {listPage &&
+            listPage.map((value, index) =>
+              <div key={index} className={style.tableBody}>
+                <label className={style.column}>
+                  {(currentPage - 1) * numberPage + index + 1}
+                </label>
+                <label className={style.column}>
+                  {value[0]}
+                </label>
+                <label className={style.column}>
+                  {Array.isArray(value[1])
+                    ? value[1].map((item, index) =>
+                        <img
+                          key={index}
+                          className={style.image}
+                          src={`http://localhost:8080/api/uploadImageProduct/${item}`}
+                          alt="Hình Ảnh"
+                        />
+                      )
+                    : <img
                         className={style.image}
-                        src={`http://localhost:8080/api/uploadImageProduct/${item}`}
+                        src={`/images/nullImage.png`}
                         alt="Hình Ảnh"
-                      />
-                    )
-                  : <img
-                      className={style.image}
-                      src={`/images/nullImage.png`}
-                      alt="Hình Ảnh"
-                    />}
-              </label>
-              <label className={style.column}>
-                {value[2]}
-              </label>
-              <label className={style.column}>
-                {value[3]}
-              </label>
-              <label className={style.column}>
-                {formatCurrency(value[4], 0)}
-              </label>
-              <label className={style.column}>
-                <span
-                  className={style.status}
-                  style={{
-                    backgroundColor:
-                      value[6] === 0
-                        ? "#34219E"
-                        : value[6] === 1
-                          ? "green"
-                          : value[6] === 2 ? "red" : "#E74C3C"
-                  }}
-                  value={`${value[6]}`}
-                >
-                  {value[6] === 0
-                    ? "Chờ Phê Duyệt"
-                    : value[6] === 1
-                      ? "Đang Hoạt Động"
-                      : value[6] === 2
-                        ? "Dừng Hoạt Động"
-                        : value[6] === 3 ? "Cấm hoạt động" : "Lỗi"}
-                </span>
-              </label>
-              <label className={style.column}>
-                {value[5]}
-              </label>
-              <label className={style.column}>
-                <i
-                  className={`bi bi-pencil-square ${style.buttonEdit}`}
-                  onClick={handleClickEditProduct}
-                />
-              </label>
-            </div>
-          )}
+                      />}
+                </label>
+                <label className={style.column}>
+                  {value[2]}
+                </label>
+                <label className={style.column}>
+                  {value[3]}
+                </label>
+                <label className={style.column}>
+                  {formatCurrency(value[4], 0)}
+                </label>
+                <label className={style.column}>
+                  <span
+                    className={style.status}
+                    style={{
+                      backgroundColor:
+                        value[6] === 0
+                          ? "#34219E"
+                          : value[6] === 1
+                            ? "green"
+                            : value[6] === 2 ? "red" : "#E74C3C"
+                    }}
+                    value={`${value[6]}`}
+                  >
+                    {value[6] === 0
+                      ? "Chờ Phê Duyệt"
+                      : value[6] === 1
+                        ? "Đang Hoạt Động"
+                        : value[6] === 2
+                          ? "Dừng Hoạt Động"
+                          : value[6] === 3 ? "Cấm hoạt động" : "Lỗi"}
+                  </span>
+                </label>
+                <label className={style.column}>
+                  {value[5]}
+                </label>
+                <label className={style.column}>
+                  <i
+                    className={`bi bi-pencil-square ${style.buttonEdit}`}
+                    onClick={handleClickEditProduct}
+                  />
+                </label>
+              </div>
+            )}
         </div>
         <div className={`${style.buttonPage}`}>
           <Nav.Link className={`btn`} onClick={() => handlePageChange(1)}>
