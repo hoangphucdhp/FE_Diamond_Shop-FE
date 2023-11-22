@@ -30,7 +30,7 @@ const MainNavbar = () => {
     };
 
     getAccountFromCookie();
-  }, []); 
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
@@ -40,6 +40,13 @@ const MainNavbar = () => {
     navigate.push(`/search?name=${searchQuery}`);
   };
 
+  const handleLogout = () => {
+    Cookies.remove("accountLogin");
+    const delay = setTimeout(() => {
+      navigate("/");
+    }, 800);
+    return () => clearTimeout(delay);
+  };
   return (
     <>
       <header className="header shop">
@@ -83,6 +90,16 @@ const MainNavbar = () => {
                         </div>
                       )}
                     </li>
+                    {accountLogin !== null ? (
+                      <li>
+                        <div>
+                        <i className="bi bi-door-open"></i>
+                          <a href="" onClick={() => handleLogout()}>
+                            Đăng xuất
+                          </a>
+                        </div>
+                      </li>
+                    ) : null}
                   </ul>
                 </div>
                 {/* End Top Right */}

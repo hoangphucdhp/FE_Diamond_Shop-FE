@@ -13,6 +13,7 @@ export default function Register() {
   const [repassword, setRepassword] = useState("");
   const [checkbox, setCheckbox] = useState(false);
   const [email, setEmail] = useState("");
+  const [checkEmail, setCheckEmail] = useState("");
   const [code, setCode] = useState("");
   const [valiCode, setValicode] = useState("");
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Register() {
     setRepassword("")
     setCode("")
     setEmail("")
+    setCheckEmail("")
     setCheckbox(false)
     setValicode("")
   }
@@ -42,6 +44,7 @@ export default function Register() {
           if (response.data.success) {
             ThongBao(response.data.message, "success");
             setValicode(response.data.code);
+            setCheckEmail(email)
           }else{
             ThongBao(response.data.message, "error");
           }
@@ -55,6 +58,8 @@ export default function Register() {
   const handleRegis = async e => {
     if (username === "" || password === "" || email === "" || code === "") {
       ThongBao("Vui lòng nhập đầy đủ thông tin!", "error");
+    }else if(email !== checkEmail){
+      ThongBao("Email không khớp với email đã xác nhận!", "error");
     } else {
       if (checkbox === false) {
         ThongBao(
@@ -74,6 +79,10 @@ export default function Register() {
                 if (response.data.success) {
                   ThongBao("Đăng ký thành công!", "success");
                   clearInput()
+                  const delay = setTimeout(() => {
+                    window.location.reload();
+                  }, 800);
+                  return () => clearTimeout(delay);
                 }else{
                   ThongBao(response.data.message, "error");
                 }
@@ -126,7 +135,7 @@ export default function Register() {
                       </p>
                       <form className="row g-3">
                         <div className="col-12">
-                          <label for="inputUsername" className="form-label">
+                          <label htmlFor="inputUsername" className="form-label">
                             Tài khoản:
                           </label>
                           <input
@@ -137,7 +146,7 @@ export default function Register() {
                           />
                         </div>
                         <div className="col-12">
-                          <label for="inputAddress2" className="form-label">
+                          <label htmlFor="inputAddress2" className="form-label">
                             Mật khẩu:
                           </label>
                           <input
@@ -148,7 +157,7 @@ export default function Register() {
                           />
                         </div>
                         <div className="col-12">
-                          <label for="inputAddress2" className="form-label">
+                          <label htmlFor="inputAddress2" className="form-label">
                             Nhập lại mật khẩu:
                           </label>
                           <input
@@ -159,7 +168,7 @@ export default function Register() {
                           />
                         </div>
                         <div className="col-12">
-                          <label for="inputAddress2" className="form-label">
+                          <label htmlFor="inputAddress2" className="form-label">
                             Email
                           </label>
                           <input
@@ -196,7 +205,7 @@ export default function Register() {
                               value={true}
                               onChange={e => setCheckbox(e.target.value)}
                             />
-                            <label className="form-check-label" for="gridCheck">
+                            <label className="form-check-label" htmlFor="gridCheck">
                               Đã đọc và đồng ý với các{" "}
                               <a href="/policy">chính sách và điều khoản</a>
                             </label>

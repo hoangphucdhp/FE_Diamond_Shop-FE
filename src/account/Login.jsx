@@ -29,7 +29,8 @@ function Login() {
           username: response.data.username,
           create_date: response.data.create_date,
           role: response.data.listRole.map((value) => value.role.role_name),
-          address:[]
+          gender : response.data.infoAccount.gender,
+          address: []
         };
         //INFO ACCOUNT
         if (response.data.infoAccount && response.data.infoAccount.fullname) {
@@ -57,13 +58,9 @@ function Login() {
         }
 
         if (response.data.address_account) {
-          response.data.address_account.forEach(value => {
+          response.data.address_account.forEach((value) => {
             data.address.push(value);
           });
-        }
-
-        if (response.data.infoAccount) {
-          data.gender = response.data.infoAccount.gender;
         }
 
         //ENCODE
@@ -72,7 +69,7 @@ function Login() {
         const timeCookie = new Date();
         timeCookie.setTime(timeCookie.getTime() + 60 * 60 * 1000);
         Cookies.set("accountLogin", base64String, { expires: timeCookie });
-        console.log(data)
+        console.log(data);
         navigate("/");
       }
     } catch (error) {
@@ -103,7 +100,7 @@ function Login() {
                         <div className="form-group">
                           <label htmlFor="exampleInputEmail1">Tài khoản</label>
                           <input
-                            typeName="email"
+                            type="email"
                             className="form-control"
                             id="exampleInputEmail1"
                             onChange={(e) => setUsername(e.target.value)}

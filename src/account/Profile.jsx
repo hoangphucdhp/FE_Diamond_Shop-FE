@@ -14,50 +14,79 @@ function utf8_to_b64(str) {
 }
 
 function Profile_User() {
-  const accountLogin = JSON.parse(
-    decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
-  );
+  const [accountLogin, setAccountLogin] = useState(null);
+
   const navigate = useNavigate();
-  useEffect(() => {
-    if (accountLogin === null) {
-      navigate("/");
+  const getAccountFromCookie = () => {
+    const accountCookie = Cookies.get("accountLogin");
+
+    if (accountCookie !== undefined) {
+      try {
+        const data = JSON.parse(
+          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+        );
+        setAccountLogin(data);
+      } catch (error) {
+        console.log(error);
+      }
     } else {
-      setUsername(accountLogin.username);
-      if (accountLogin.fullname) {
-        setFullname(accountLogin.fullname);
-      }
-      if (accountLogin.phone) {
-        setPhone(accountLogin.phone);
-      }
-      if (accountLogin.id_card) {
-        setIdCard(accountLogin.id_card);
-      }
-      if (accountLogin.email) {
-        setEmail(accountLogin.email);
-      }
-      setGender(accountLogin.gender);
-      if (accountLogin.city) {
-        setCity(accountLogin.city);
-      }
-      if (accountLogin.address.length > 0) {
-        accountLogin.address.filter((value) => {
-          if (value.status) {
-            setCity(value.city);
-            setDistrict(value.district);
-            setWard(value.ward);
-            setAddress(value.address);
-            setIdAddressUse(value.id);
-          }
-        });
+      navigate("/login");
+    }
+  };
+
+  const setDataLogin = () => {
+    if (Cookies.get("accountLogin") !== undefined) {
+      try {
+        const data = JSON.parse(
+          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+        );
+        setUsername(data.username);
+        if (data.fullname) {
+          setFullname(data.fullname);
+        }
+        if (data.phone) {
+          setPhone(data.phone);
+        }
+        if (data.id_card) {
+          setIdCard(data.id_card);
+        }
+        if (data.email) {
+          setEmail(data.email);
+        }
+        setGender(data.gender);
+        if (data.city) {
+          setCity(data.city);
+        }
+        if (data.address.length > 0) {
+          data.address.filter((value) => {
+            if (value.status) {
+              setCity(value.city);
+              setDistrict(value.district);
+              setWard(value.ward);
+              setAddress(value.address);
+              setIdAddressUse(value.id);
+            }
+          });
+        }
+        if (data.image) {
+          setImage(data.image);
+        }
+      } catch (error) {
+        console.log(error);
       }
     }
+  };
+
+  useEffect(() => {
+    getAccountFromCookie();
+    setDataLogin();
   }, []);
 
   //SELECT IMAGE
-  const [selectedImage, setSelectedImage] = useState(accountLogin.image);
+  const [image, setImage] = useState("");
   const listDataAddress = DataAddress;
 
-  const [idAddressUse, setIdAddressUse] = useState();
+  const [idAddressUse, setIdAddressUse] = useState(0);
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
@@ -74,9 +103,10 @@ function Profile_User() {
     setWard("");
   };
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [prepassword, setPrepassword] = useState("");
-  const [repassword, setRepassword] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [reNewPassword, setReNewPassword] = useState("");
+
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -111,15 +141,19 @@ function Profile_User() {
           email
         })
         .then((response) => {
-          ThongBao(response.data.message, response.data.status);
           if (response.data.status === "success") {
+            ThongBao(response.data.message, "success");
             accountLogin.id_card = id_card;
             accountLogin.phone = phone;
             accountLogin.gender = gender;
             accountLogin.email = email;
             accountLogin.fullname = fullname;
+
+            console.log(accountLogin);
             const base64String = utf8_to_b64(JSON.stringify(accountLogin));
             Cookies.set("accountLogin", base64String);
+          } else {
+            ThongBao(response.data.message, "error");
           }
         })
         .catch((error) => {
@@ -128,41 +162,58 @@ function Profile_User() {
     }
   };
 
-  const handleChangePass = async (e) => {
-    e.preventDefault();
-    if (prepassword === "") {
-      alert("VUI LÒNG NHẬP MẬT KHẨU CŨ CỦA BẠN!");
-    } else if (prepassword === "1") {
-      if (password === repassword) {
-        if (password === prepassword) {
-          alert("MẬT KHẨU MỚI KHÔNG ĐƯỢC TRÙNG VỚI MẬT KHẨU CŨ!");
-        } else {
-          axios
-            .post(domain + "/api/account/changepass", { username, password })
-            .then((response) => {
-              if (response.data.success) {
-                alert(response.data.message);
-              } else {
-                alert(response.data.message);
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-            });
-        }
-      } else {
-        alert("MẬT KHẨU NHẬP LẠI KHÔNG KHỚP!");
-      }
+  const handleChangePass = async () => {
+    if (oldPassword === "" || newPassword === "" || reNewPassword === "") {
+      ThongBao("Vui lòng nhập đầy đủ thông tin!", "error");
     } else {
-      alert("BẠN NHẬP SAI MẬT KHẨU HIỆN TẠI!");
+      const formData = new FormData();
+      formData.append("oldPassword", oldPassword);
+      formData.append("newPassword", newPassword);
+      formData.append("reNewPassword", reNewPassword);
+      axios
+        .post(domain + `/api/account/changepass/${username}`, formData)
+        .then((response) => {
+          ThongBao(response.data.message, response.data.status);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
       // Xử lý tệp ảnh đã chọn ở đây
-      setSelectedImage(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      //SAVE IMAGE
+      const formData = new FormData();
+      formData.append("image", file);
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      };
+      const response = await callAPI(
+        `/api/account/updateImage/${username}`,
+        "POST",
+        formData,
+        config
+      );
+      if (response) {
+        ThongBao(response.message, response.status);
+        console.log(response);
+        accountLogin.image = response.data.image;
+        const base64String = utf8_to_b64(JSON.stringify(accountLogin));
+        Cookies.set("accountLogin", base64String);
+        const delay = setTimeout(() => {
+          window.location.reload();
+        }, 800);
+        return () => clearTimeout(delay);
+      } else {
+        ThongBao("Lỗi!", "error");
+      }
     }
   };
 
@@ -183,12 +234,16 @@ function Profile_User() {
         const delay = setTimeout(() => {
           window.location.reload();
         }, 800);
+        return () => clearTimeout(delay);
       }
     }
   };
 
   const handleUpdateAddress = async () => {
-    if (city === "" || address === "" || district === "" || ward === "") {
+    if(idAddressUse === 0){
+      ThongBao("Vui lòng chọn địa chỉ cần cập nhật!", "info");
+    }
+    else if (city === "" || address === "" || district === "" || ward === "") {
       ThongBao("Vui lòng nhập đầy đủ thông tin!", "error");
     } else {
       const response = await callAPI(
@@ -204,6 +259,7 @@ function Profile_User() {
         const delay = setTimeout(() => {
           window.location.reload();
         }, 800);
+        return () => clearTimeout(delay);
       } else {
         ThongBao("Lỗi!", "error");
       }
@@ -267,8 +323,9 @@ function Profile_User() {
                     <div className="user-avatar" style={{ cursor: "pointer" }}>
                       <img
                         src={
-                          selectedImage ||
-                          "https://bootdey.com/img/Content/avatar/avatar7.png"
+                          image
+                            ? `http://localhost:8080/api/uploadImageProduct/${image}`
+                            : "https://bootdey.com/img/Content/avatar/avatar7.png"
                         }
                         alt="user"
                         onClick={handleImageClick}
@@ -281,9 +338,9 @@ function Profile_User() {
                         onChange={handleFileChange}
                       />
                     </div>
-                    <h5 className="user-name">{accountLogin.username}</h5>
+                    <h5 className="user-name">{username}</h5>
                     <h6 className="user-date">
-                      Ngày tạo: {accountLogin.create_date}
+                      Ngày tạo: {accountLogin && accountLogin.create_date}
                     </h6>
                   </div>
                   <div className="about">
@@ -303,93 +360,86 @@ function Profile_User() {
                       aria-labelledby="exampleModalLabel"
                       aria-hidden="true"
                     >
-                      <div
-                        className="modal fade"
-                        id="exampleModal"
-                        tabIndex="-1"
-                        aria-labelledby="exampleModalLabel"
-                        aria-hidden="true"
-                      >
-                        <div className="modal-dialog">
-                          <div className="modal-content">
-                            <div className="modal-header">
-                              <h1
-                                className="modal-title fs-5"
-                                id="exampleModalLabel"
+                      <div className="modal-dialog">
+                        <div className="modal-content">
+                          <div className="modal-header">
+                            <h1
+                              className="modal-title fs-5"
+                              id="exampleModalLabel"
+                            >
+                              Đổi mật khẩu
+                            </h1>
+                            <button
+                              type="button"
+                              className="btn-close"
+                              data-bs-dismiss="modal"
+                              aria-label="Close"
+                            ></button>
+                          </div>
+                          <div className="modal-body">
+                            <div className="col-12">
+                              <label
+                                htmlFor="inputpass1"
+                                className="form-label"
                               >
-                                Đổi mật khẩu
-                              </h1>
-                              <button
-                                type="button"
-                                className="btn-close"
-                                data-bs-dismiss="modal"
-                                aria-label="Close"
-                              ></button>
+                                Mật khẩu cũ:
+                              </label>
+                              <input
+                                type="password"
+                                className="form-control"
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                id="prepassword"
+                                defaultValue={oldPassword}
+                              />
                             </div>
-                            <div className="modal-body">
-                              <div className="col-12">
-                                <label
-                                  htmlFor="inputpass1"
-                                  className="form-label"
-                                >
-                                  Mật khẩu cũ:
-                                </label>
-                                <input
-                                  type="password"
-                                  className="form-control"
-                                  onChange={(e) =>
-                                    setPrepassword(e.target.value)
-                                  }
-                                  id="prepassword"
-                                />
-                              </div>
-                              <div className="col-12">
-                                <label
-                                  htmlFor="inputpass2"
-                                  className="form-label"
-                                >
-                                  Mật khẩu:
-                                </label>
-                                <input
-                                  type="password"
-                                  className="form-control"
-                                  onChange={(e) => setPassword(e.target.value)}
-                                  id="password"
-                                />
-                              </div>
-                              <div className="col-12">
-                                <label
-                                  htmlFor="inputpass3"
-                                  className="form-label"
-                                >
-                                  Nhập lại mật khẩu:
-                                </label>
-                                <input
-                                  type="password"
-                                  className="form-control"
-                                  onChange={(e) =>
-                                    setRepassword(e.target.value)
-                                  }
-                                  id="repassword"
-                                />
-                              </div>
-                            </div>
-                            <div className="modal-footer">
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                data-bs-dismiss="modal"
+                            <div className="col-12">
+                              <label
+                                htmlFor="inputpass2"
+                                className="form-label"
                               >
-                                Thoát
-                              </button>
-                              <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleChangePass}
-                              >
-                                Lưu thay đổi
-                              </button>
+                                Mật khẩu mới:
+                              </label>
+                              <input
+                                type="password"
+                                className="form-control"
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                id="password"
+                                defaultValue={newPassword}
+                              />
                             </div>
+                            <div className="col-12">
+                              <label
+                                htmlFor="inputpass3"
+                                className="form-label"
+                              >
+                                Nhập lại mật khẩu mới:
+                              </label>
+                              <input
+                                type="password"
+                                className="form-control"
+                                onChange={(e) =>
+                                  setReNewPassword(e.target.value)
+                                }
+                                id="repassword"
+                                defaultValue={reNewPassword}
+                              />
+                            </div>
+                          </div>
+                          <div className="modal-footer">
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              data-bs-dismiss="modal"
+                            >
+                              Thoát
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={() => handleChangePass()}
+                            >
+                              Lưu thay đổi
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -413,7 +463,7 @@ function Profile_User() {
                         type="text"
                         className="form-control"
                         id="fullName"
-                        defaultValue={accountLogin.fullname}
+                        defaultValue={fullname}
                         onChange={(e) => setFullname(e.target.value)}
                       />
                     </div>
@@ -425,7 +475,7 @@ function Profile_User() {
                         type="text"
                         className="form-control"
                         id="phone"
-                        defaultValue={accountLogin.phone}
+                        defaultValue={phone}
                         onChange={(e) => setPhone(e.target.value)}
                       />
                     </div>
@@ -437,7 +487,7 @@ function Profile_User() {
                         type="url"
                         className="form-control"
                         id="email"
-                        value={accountLogin.email}
+                        value={email}
                         readOnly
                       />
                     </div>
@@ -449,7 +499,7 @@ function Profile_User() {
                         type="url"
                         className="form-control"
                         id="email"
-                        defaultValue={accountLogin.id_card}
+                        defaultValue={id_card}
                         onChange={(e) => setIdCard(e.target.value)}
                       />
                     </div>
@@ -462,10 +512,10 @@ function Profile_User() {
                           <input
                             className="form-check-input"
                             type="radio"
-                            name="gridRadios"
+                            name="gender"
                             id="gridRadios1"
                             onChange={() => setGender(true)}
-                            defaultChecked={accountLogin.gender ? true : false}
+                            defaultChecked={accountLogin && accountLogin.gender === true}
                           />
                           <label
                             className="form-check-label"
@@ -481,10 +531,10 @@ function Profile_User() {
                           <input
                             className="form-check-input"
                             type="radio"
-                            name="gridRadios"
+                            name="gender"
                             id="gridRadios2"
                             onChange={() => setGender(false)}
-                            defaultChecked={!accountLogin.gender ? true : false}
+                            defaultChecked={accountLogin && accountLogin.gender === false}
                           />
                           <label
                             className="form-check-label"
@@ -594,7 +644,7 @@ function Profile_User() {
                       className={`form-control ${style.input}`}
                       id="adress"
                       placeholder="Số nhà"
-                      defaultValue={accountLogin.address}
+                      defaultValue={address}
                       onChange={(e) => setAddress(e.target.value)}
                     />
                   </div>
@@ -625,53 +675,59 @@ function Profile_User() {
                 </div>
               </div>
               <div className={style.listAddress}>
-                {accountLogin.address.map((value, index) =>
-                  listDataAddress.map((valueCity, index) =>
-                    valueCity.codename === value.city
-                      ? valueCity.districts.map((valueDistrict, index) =>
-                          valueDistrict.codename === value.district
-                            ? valueDistrict.wards.map((valueWard, index) =>
-                                valueWard.codename === value.ward ? (
-                                  <div
-                                    className={`${style.address} ${
-                                      value.status ? style.active : ""
-                                    }`}
-                                  >
-                                    <div className={style.value}>
-                                      {valueCity.name}, {valueDistrict.name},{" "}
-                                      {valueWard.name}, {value.address}
+                {accountLogin &&
+                  accountLogin.address.map((value, index) =>
+                    listDataAddress.map((valueCity, index) =>
+                      valueCity.codename === value.city
+                        ? valueCity.districts.map((valueDistrict, index) =>
+                            valueDistrict.codename === value.district
+                              ? valueDistrict.wards.map((valueWard, index) =>
+                                  valueWard.codename === value.ward ? (
+                                    <div
+                                      key={valueCity.codename}
+                                      className={`${style.address} ${
+                                        value.status ? style.active : ""
+                                      }`}
+                                    >
+                                      <div className={style.value}>
+                                        {valueCity.name}, {valueDistrict.name},{" "}
+                                        {valueWard.name}, {value.address}
+                                      </div>
+                                      <div className={style.groupButton}>
+                                        <span
+                                          className={`${style.status} ${
+                                            value.status ? style.active : ""
+                                          }`}
+                                          onClick={() =>
+                                            handleSelectUseAddress(
+                                              value.id,
+                                              value.status
+                                            )
+                                          }
+                                        >
+                                          {value.status
+                                            ? "Đang Dùng"
+                                            : "Sử Dụng"}
+                                        </span>
+                                        <i
+                                          className={`bi bi-dash-lg ${
+                                            style.remove
+                                          } ${
+                                            value.status ? style.active : ""
+                                          }`}
+                                          onClick={() =>
+                                            handleDeleteAddress(value.id)
+                                          }
+                                        ></i>
+                                      </div>
                                     </div>
-                                    <div className={style.groupButton}>
-                                      <span
-                                        className={`${style.status} ${
-                                          value.status ? style.active : ""
-                                        }`}
-                                        onClick={() =>
-                                          handleSelectUseAddress(
-                                            value.id,
-                                            value.status
-                                          )
-                                        }
-                                      >
-                                        {value.status ? "Đang Dùng" : "Sử Dụng"}
-                                      </span>
-                                      <i
-                                        className={`bi bi-dash-lg ${
-                                          style.remove
-                                        } ${value.status ? style.active : ""}`}
-                                        onClick={() =>
-                                          handleDeleteAddress(value.id)
-                                        }
-                                      ></i>
-                                    </div>
-                                  </div>
-                                ) : null
-                              )
-                            : null
-                        )
-                      : null
-                  )
-                )}
+                                  ) : null
+                                )
+                              : null
+                          )
+                        : null
+                    )
+                  )}
               </div>
             </div>
           </div>
