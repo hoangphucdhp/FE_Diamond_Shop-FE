@@ -5,23 +5,49 @@ import ProductService from "../../service/ProductService";
 import { ThongBao } from "../../service/ThongBao";
 import { useDispatch, useSelector } from "react-redux";
 import { reloadPage } from "../../service/Actions";
+import { useNavigate } from "react-router";
+import Cookies from "js-cookie";
 
 export default function AddStorge() {
+  const navigate = useNavigate();
+  const getAccountFromCookie = () => {
+    const accountCookie = Cookies.get("accountLogin");
+    if (accountCookie !== undefined) {
+      try {
+        const data = JSON.parse(
+          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+        );
+        getdataProduct(data.shop.id);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      navigate("/login");
+    }
+  };
+
   const dispatch = useDispatch();
   const [listProduct, setdataproduct] = useState([]);
   const [valueProduct, setValueProduct] = React.useState("");
-  const [quantity, setquantity] = useState('');
+  const [quantity, setquantity] = useState("");
   const reloadold = useSelector((state) => state.getreloadPage);
   //DANH SÁCH SẢN PHẨM
 
   useEffect(() => {
-    getdataProduct()
+    getAccountFromCookie();
   }, []);
 
-  const getdataProduct = async () => {
-    const response = await ProductService.getAllProduct(1);
-    setdataproduct(response)
-  }
+  const getdataProduct = async (idShop) => {
+    try {
+      const response = await callAPI(
+        `/api/product/getByShop?shop=${idShop}`,
+        "GET"
+      );
+      setdataproduct(response);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const handleChangeProduct = async (event) => {
     const selectedOptionValue = event.target.value;
@@ -36,18 +62,21 @@ export default function AddStorge() {
     } else {
       const product2 = await ProductService.getProductbyId(valueProduct);
       if (product2 !== null) {
-        const response = await callAPI(`/api/product/createStorage/${product2.id}`, 'POST', {
-          quantity: parseInt(quantity),
-          create_date: new Date()
-        });
-        if (response.status === 'success') {
+        const response = await callAPI(
+          `/api/product/createStorage/${product2.id}`,
+          "POST",
+          {
+            quantity: parseInt(quantity),
+            create_date: new Date()
+          }
+        );
+        if (response.status === "success") {
           ThongBao(response.message, response.status);
           dispatch(reloadPage(reloadold + 1));
         }
       }
     }
-  }
-
+  };
 
   return (
     <React.Fragment>
@@ -74,22 +103,27 @@ export default function AddStorge() {
             className={`${style.optionSelect} ${style.input}`}
           >
             <option value="">Sản Phẩm...</option>
-            {listProduct && listProduct.map((value, index) =>
-              <option key={index} value={value.id}>
+            {listProduct?.content?.map((value, index) => (
+              <option key={value.id} value={value.id}>
                 {value.product_name}
               </option>
-            )}
+            ))}
           </select>
         </div>
         <div className={`${style.quantity}`}>
           <label className={style.label}>Số lượng</label>
-          <input type="number" className={style.input} onChange={(e) => { setquantity(e.target.value) }} />
+          <input
+            type="number"
+            className={style.input}
+            onChange={(e) => {
+              setquantity(e.target.value);
+            }}
+          />
         </div>
         <div className={style.formButton}>
           <button className={style.button} onClick={handelAdd}>
             <i className="bi bi-plus-lg"></i> THÊM
           </button>
-
         </div>
       </div>
     </React.Fragment>

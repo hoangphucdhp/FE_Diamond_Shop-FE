@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import EditShop from "./EditShop";
 import ListShop from "./ListShop";
 import { useDispatch, useSelector } from "react-redux";
 import ShopService from "../../service/ShopService";
@@ -11,9 +10,7 @@ import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import ListShopWait from "./ListShopWait";
-import { useLocation } from "react-router";
-import ShopDetail from "./Shopdetail";
-import { useNavigate } from "react-router-dom";
+
 function Shop() {
   const dispatch = useDispatch();
   const idShop = useSelector((state) => state.idShop);
@@ -21,10 +18,8 @@ function Shop() {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
-  const location = useLocation();
-  const isActiveShop = location.pathname === "/admin/shops";
-  const isActiveShopDetail = location.pathname === "/admin/shop/shopdetail";
-  const navigate = useNavigate();
+
+
   useEffect(() => {
     getdataShop();
   }, [idShop]);

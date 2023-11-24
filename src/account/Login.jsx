@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { callAPI } from "../service/API";
 import Cookies from "js-cookie";
+import axios from "axios";
+import { ThongBao } from "../service/ThongBao";
 
 function utf8_to_b64(str) {
   return window.btoa(unescape(encodeURIComponent(str)));
@@ -17,64 +19,69 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const domain = process.env.REACT_APP_API || "http://localhost:8080";
   const handleLogin = async () => {
-    try {
-      const response = await callAPI(`/api/account/login`, "POST", {
+    axios
+      .post(domain + `/api/account/login`, {
         username,
         password
+      })
+      .then((response) => {
+        if(response.data.status === "success"){
+
+          const data = {
+            id_account: response.data.data.id,
+            username: response.data.data.username,
+            create_date: response.data.data.create_date,
+            role: response.data.data.listRole.map((value) => value.role.role_name),
+            gender: response.data.data.infoAccount.gender,
+            address: []
+          };
+          //INFO ACCOUNT
+          if (response.data.data.infoAccount && response.data.data.infoAccount.fullname) {
+            data.fullname = response.data.data.infoAccount.fullname;
+          }
+  
+          if (response.data.data.infoAccount && response.data.data.infoAccount.image) {
+            data.image = response.data.data.infoAccount.image;
+          }
+  
+          if (response.data.data.infoAccount && response.data.data.infoAccount.id_card) {
+            data.id_card = response.data.data.infoAccount.id_card;
+          }
+  
+          if (response.data.data.infoAccount && response.data.data.infoAccount.phone) {
+            data.phone = response.data.data.infoAccount.phone;
+          }
+  
+          if (response.data.data.infoAccount && response.data.data.infoAccount.email) {
+            data.email = response.data.data.infoAccount.email;
+          }
+  
+          if (response.data.data.shop) {
+            data.shop = response.data.data.shop;
+          }
+  
+          if (response.data.data.address_account) {
+            response.data.data.address_account.forEach((value) => {
+              data.address.push(value);
+            });
+          }
+  
+          //ENCODE
+          const base64String = utf8_to_b64(JSON.stringify(data));
+  
+          const timeCookie = new Date();
+          timeCookie.setTime(timeCookie.getTime() + 60 * 60 * 1000);
+          Cookies.set("accountLogin", base64String, { expires: timeCookie });
+          navigate("/");
+        }else{
+          ThongBao(response.data.message,"error")
+        }
+      })
+      .catch((error) => {
+        console.error(error);
       });
-      if (response) {
-        const data = {
-          id_account: response.data.id,
-          username: response.data.username,
-          create_date: response.data.create_date,
-          role: response.data.listRole.map((value) => value.role.role_name),
-          gender : response.data.infoAccount.gender,
-          address: []
-        };
-        //INFO ACCOUNT
-        if (response.data.infoAccount && response.data.infoAccount.fullname) {
-          data.fullname = response.data.infoAccount.fullname;
-        }
-
-        if (response.data.infoAccount && response.data.infoAccount.image) {
-          data.image = response.data.infoAccount.image;
-        }
-
-        if (response.data.infoAccount && response.data.infoAccount.id_card) {
-          data.id_card = response.data.infoAccount.id_card;
-        }
-
-        if (response.data.infoAccount && response.data.infoAccount.phone) {
-          data.phone = response.data.infoAccount.phone;
-        }
-
-        if (response.data.infoAccount && response.data.infoAccount.email) {
-          data.email = response.data.infoAccount.email;
-        }
-
-        if (response.data.shop) {
-          data.shop = response.data.shop;
-        }
-
-        if (response.data.address_account) {
-          response.data.address_account.forEach((value) => {
-            data.address.push(value);
-          });
-        }
-
-        //ENCODE
-        const base64String = utf8_to_b64(JSON.stringify(data));
-
-        const timeCookie = new Date();
-        timeCookie.setTime(timeCookie.getTime() + 60 * 60 * 1000);
-        Cookies.set("accountLogin", base64String, { expires: timeCookie });
-        console.log(data);
-        navigate("/");
-      }
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   return (
@@ -126,7 +133,7 @@ function Login() {
                             Đăng nhập
                           </button>
                           <a
-                            href="/forgotPass"
+                            href="/forgotPassword"
                             className="forgot-link float-right text-primary"
                           >
                             Quên mật khẩu?

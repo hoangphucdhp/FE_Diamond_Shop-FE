@@ -58,7 +58,7 @@ function OrderList() {
       </nav>
       <div className="container">
         <div className="row">
-          <div className="col-xl-12 mt-4">
+          <div className="col-xl-12 mt-4 mb-4">
             <div className="card">
               <div className="card-body">
                 <h5 className="header-title pb-3 mt-0">Đơn hàng của tôi</h5>

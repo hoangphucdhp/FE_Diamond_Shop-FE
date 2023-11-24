@@ -47,7 +47,7 @@ function App() {
 
       <Route path="/suggestedProducts" element={<SuggestedProducts />} />
       <Route path="/recommendedProducts" element={<RecommendedProducts />} />
-      <Route path="/forgotPass" element={<ForgotPass />} />
+      <Route path="/forgotPassword" element={<ForgotPass />} />
       <Route path="/otp" element={<Otp />} />
       <Route path="/register" element={<Register />} />
       <Route path="/newPass" element={<NewPass />} />

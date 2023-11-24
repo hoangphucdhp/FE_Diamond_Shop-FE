@@ -6,6 +6,8 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router";
 import { ThongBao } from "../service/ThongBao";
+import Cookies from "js-cookie";
+import { useEffect } from "react";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -14,22 +16,23 @@ export default function Register() {
   const [checkbox, setCheckbox] = useState(false);
   const [email, setEmail] = useState("");
   const [checkEmail, setCheckEmail] = useState("");
+  const [validateCode, setValidateCode] = useState("");
   const [code, setCode] = useState("");
-  const [valiCode, setValicode] = useState("");
   const navigate = useNavigate();
   const domain = process.env.REACT_APP_API || "http://localhost:8080";
 
-  const clearInput = ()=>{
-    setUsername("")
-    setPassword("")
-    setRepassword("")
-    setCode("")
-    setEmail("")
-    setCheckEmail("")
-    setCheckbox(false)
-    setValicode("")
-  }
-  const handleValidate = async e => {
+  const clearInput = () => {
+    setUsername("");
+    setPassword("");
+    setRepassword("");
+    setCode("");
+    setEmail("");
+    setCheckEmail("");
+    setCheckbox(false);
+    Cookies.remove("codeRegister");
+  };
+
+  const handleValidate = async (e) => {
     if (
       username === "" ||
       password === "" ||
@@ -40,26 +43,36 @@ export default function Register() {
     } else {
       axios
         .post(domain + "/api/account/" + email)
-        .then(response => {
+        .then((response) => {
           if (response.data.success) {
             ThongBao(response.data.message, "success");
-            setValicode(response.data.code);
-            setCheckEmail(email)
-          }else{
+            const timeCookie = new Date();
+            timeCookie.setTime(timeCookie.getTime() + 5 * 60 * 1000);
+            Cookies.set("codeRegister", response.data.data, {
+              expires: timeCookie
+            });
+            setCheckEmail(email);
+            setValidateCode(response.data.data);
+          } else {
             ThongBao(response.data.message, "error");
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
         });
     }
   };
 
-  const handleRegis = async e => {
+  const handleRegis = async (e) => {
     if (username === "" || password === "" || email === "" || code === "") {
       ThongBao("Vui lòng nhập đầy đủ thông tin!", "error");
-    }else if(email !== checkEmail){
+    } else if (email !== checkEmail) {
       ThongBao("Email không khớp với email đã xác nhận!", "error");
+    } else if (
+      validateCode !== "" &&
+      Cookies.get("codeRegister") === undefined
+    ) {
+      ThongBao("Mã OTP đã hết hạn!", "error");
     } else {
       if (checkbox === false) {
         ThongBao(
@@ -68,26 +81,26 @@ export default function Register() {
         );
       } else {
         if (password === repassword) {
-          if (code === valiCode) {
+          if (code === validateCode) {
             axios
               .post(domain + "/api/account/register/" + email, {
                 username,
                 password
               })
-              .then(response => {
+              .then((response) => {
                 console.log(response);
                 if (response.data.success) {
                   ThongBao("Đăng ký thành công!", "success");
-                  clearInput()
+                  clearInput();
                   const delay = setTimeout(() => {
-                    window.location.reload();
+                    navigate("/login");
                   }, 800);
                   return () => clearTimeout(delay);
-                }else{
+                } else {
                   ThongBao(response.data.message, "error");
                 }
               })
-              .catch(error => {
+              .catch((error) => {
                 console.log(error);
               });
           } else {
@@ -142,7 +155,7 @@ export default function Register() {
                             type="text"
                             className={`form-control ${style.input}`}
                             id="username"
-                            onChange={e => setUsername(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                           />
                         </div>
                         <div className="col-12">
@@ -153,7 +166,7 @@ export default function Register() {
                             type="password"
                             className={`form-control ${style.input}`}
                             id="passwordd"
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={(e) => setPassword(e.target.value)}
                           />
                         </div>
                         <div className="col-12">
@@ -164,7 +177,7 @@ export default function Register() {
                             type="password"
                             className={`form-control ${style.input}`}
                             id="repassword"
-                            onChange={e => setRepassword(e.target.value)}
+                            onChange={(e) => setRepassword(e.target.value)}
                           />
                         </div>
                         <div className="col-12">
@@ -175,7 +188,7 @@ export default function Register() {
                             type="text"
                             className={`form-control ${style.input}`}
                             id="email"
-                            onChange={e => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(e.target.value)}
                           />
                         </div>
                         <div className="col-8">
@@ -184,7 +197,7 @@ export default function Register() {
                             className={`form-control ${style.input}`}
                             id="code"
                             placeholder="CODE"
-                            onChange={e => setCode(e.target.value)}
+                            onChange={(e) => setCode(e.target.value)}
                           />
                         </div>
                         <div className="col-4">
@@ -203,9 +216,12 @@ export default function Register() {
                               type="checkbox"
                               id="checkBox"
                               value={true}
-                              onChange={e => setCheckbox(e.target.value)}
+                              onChange={(e) => setCheckbox(e.target.value)}
                             />
-                            <label className="form-check-label" htmlFor="gridCheck">
+                            <label
+                              className="form-check-label"
+                              htmlFor="gridCheck"
+                            >
                               Đã đọc và đồng ý với các{" "}
                               <a href="/policy">chính sách và điều khoản</a>
                             </label>

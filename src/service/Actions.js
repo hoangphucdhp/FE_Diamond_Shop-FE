@@ -35,6 +35,18 @@ export const getIdShop = (id) => {
     payload: id
   };
 }
+export const getIdAccountAdmin = (id) => {
+  return {
+    type: "GET_ID_ACCOUNT_ADMIN",
+    payload: id
+  };
+}
+export const getIdProductAdmin = (id) => {
+  return {
+    type: "GET_ID_PRODUCT_ADMIN",
+    payload: id
+  };
+}
 
 export const reloadPage = (load) => {
   return {

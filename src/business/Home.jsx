@@ -4,6 +4,7 @@ import Nav from "react-bootstrap/Nav";
 import { callAPI } from "../service/API";
 import Loading from "../admin/Loading";
 import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const numberPage = 10;
 //CHUYỂN ĐỔI TIỀN TỆ
@@ -17,7 +18,28 @@ function formatCurrency(price, promotion) {
 }
 
 function Home() {
+  const [accountLogin, setAccountLogin] = useState(null);
+
   const navigate = useNavigate();
+  const getAccountFromCookie = () => {
+    const accountCookie = Cookies.get("accountLogin");
+    if (accountCookie !== undefined) {
+      try {
+        const data = JSON.parse(
+          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+        );
+        setAccountLogin(data);
+        getAllBill(data.shop.id);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      navigate("/login");
+    }
+  };
+  useEffect(() => {
+    getAccountFromCookie();
+  }, []);
   //LOADING
   const [loading, setLoading] = useState(true);
   //STATUS BILL
@@ -43,10 +65,6 @@ function Home() {
   const [stockingProduct, setStockingProduct] = useState(0);
   const [listTotal, setListTotal] = useState([]);
 
-  useEffect(() => {
-    getAllBill(2);
-  }, []);
-
   const getAllBill = async idShop => {
     await callAPI(`/api/business/thongke/${idShop}`, "GET")
       .then(response => {
@@ -56,7 +74,6 @@ function Home() {
           setStockingProduct(response.data[2]);
         }
         setLoading(false);
-        console.log(response);
       })
       .catch(error => console.log(error));
   };

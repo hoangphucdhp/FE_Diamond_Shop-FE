@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import style from "../../css/business/product.module.css";
 import ModelEdit from "./updateProduct";
-import Nav from "react-bootstrap/Nav";
-import { Link } from "react-router-dom";
 import { callAPI } from "../../service/API";
-import { ThongBao, Toastify } from "../../service/ThongBao";
-
+import { useSelector } from "react-redux";
+import moment from "moment";
+import { Pagination } from "@mui/material";
+import { useNavigate } from "react-router";
+import Cookies from "js-cookie";
 const numberPage = 10;
-//DANH SÁCH SẢN PHẨM
-
-//CHUYỂN ĐỔI TIỀN TỆ
 function formatCurrency(price, promotion) {
   const formatter = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -18,49 +16,61 @@ function formatCurrency(price, promotion) {
   });
   return formatter.format(price - price * (promotion / 100));
 }
+function formatDate(date) {
+  return moment(date).format("DD-MM-YYYY HH:mm:ss");
+}
 
 export default function ListProduct() {
+  const [accountLogin, setAccountLogin] = useState(null);
+
+  const navigate = useNavigate();
+  const getAccountFromCookie = () => {
+    const accountCookie = Cookies.get("accountLogin");
+
+    if (accountCookie !== undefined) {
+      try {
+        const data = JSON.parse(
+          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+        );
+        setAccountLogin(data);
+        getdataProduct(currentPage, data.shop.id);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      navigate("/login");
+    }
+  };
+
+  const reload = useSelector((state) => state.getreloadPage);
   //MODEL EDIT
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
   const [datacategory, setcategorydata] = useState([]);
   const [categoryItemData, setcategoryItem] = useState([]);
-  const [listProduct, setdataproduct] = useState([]);
   const [valueCategory, setValueCategory] = useState("");
   const [valueCategoryItem, setValueCategoryItem] = useState("");
-
-  //PAGE
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(listProduct.length / numberPage);
-  const handlePageChange = page => {
-    if (listProduct.length <= numberPage || page <= 0) {
-      setCurrentPage(1);
-    } else {
-      if (page > totalPages) {
-        setCurrentPage(totalPages);
-      } else {
-        setCurrentPage(page);
-      }
-    }
-  };
+  const [totalPages, setTotalPages] = useState(1);
+  const [products, setProducts] = useState([]);
+  const [reloadinPage, setreload] = useState(0);
+  const [sortBy, setsortBy] = useState("");
+  const [sortType, setsortType] = useState("");
 
-  const listPage = listProduct.slice(
-    (currentPage - 1) * numberPage,
-    currentPage * numberPage
-  );
+  useEffect(() => {
+    getdataCategory();
+    getAccountFromCookie();
+  }, [reload, currentPage, reloadinPage, sortType]);
 
   function handleClickEditProduct(event) {
     const rowElement = event.currentTarget.parentElement.parentElement;
-
     const columns = Array.from(rowElement.querySelectorAll("label"));
     const id = columns[1].innerText;
-
     setModalData({
       id,
       datacategory,
       getdataProduct
     });
-
     setIsModalOpen(true);
   }
   const closeModal = () => {
@@ -68,33 +78,33 @@ export default function ListProduct() {
     setModalData({});
   };
 
-  const log = useRef(true);
-  useEffect(() => {
-    if (log.current) {
-      log.current = false;
-      getdataProduct();
-      getdataCategory();
+  const getdataProduct = async (page, idShop) => {
+    try {
+      const response = await callAPI(
+        `/api/product/search?key=${valueOption}&keyword=${textInput}&category=${valueCategoryItem}&shop=${idShop}&offset=${
+          (page - 1) * numberPage
+        }&sizePage=${numberPage}&sort=${sortBy}&sortType=${sortType}`,
+        "GET"
+      );
+      const filteredProducts = response.data.content.filter(product => {
+        const totalQuantity = product.listStorage.reduce((total, storage) => total + storage.quantity, 0);
+        return totalQuantity === 0;
+      });
+      setProducts(filteredProducts);
+      setTotalPages(response.data.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-  }, []);
-
-  const getdataProduct = async () => {
-    const url = `/api/product/find?key=${valueOption}&valueKeyword=${textInput}&idCategoryItem=${valueCategoryItem}&minQuantity=0&maxQuantity=0&status=1&stocking=false&shop=1`;
-    const response = await callAPI(url, "GET");
-    if (response) {
-      setdataproduct(response.data);
-      setCurrentPage(1);
-    }
-    console.log(response.data);
   };
 
   const getdataCategory = async () => {
     const reponse = await callAPI(`/api/category`, "GET");
     if (reponse) {
-      setcategorydata(reponse);
+      setcategorydata(reponse.content);
     }
   };
 
-  const getdataCategoryItem = async id => {
+  const getdataCategoryItem = async (id) => {
     const reponseItem = await callAPI(`/api/category/${id}`, "GET");
     if (reponseItem) {
       setcategoryItem(reponseItem.listCategory);
@@ -102,26 +112,11 @@ export default function ListProduct() {
   };
 
   //FORM SEARCH
-  const [selectedOption, setSelectedOption] = React.useState("");
-  const [valueOption, setValueOption] = React.useState("");
+  const [valueOption, setValueOption] = useState("");
   const [textInput, setTextInput] = useState("");
 
-  const handleChangeOption = event => {
-    const selectedOptionValue = event.target.value;
-    let text = "";
-    setValueOption(selectedOptionValue);
-    const options = event.target.options;
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].value === selectedOptionValue) {
-        text = options[i].innerText;
-        break;
-      }
-    }
-    setSelectedOption(text);
-  };
-
   //LOẠI SẢN PHẨM
-  const handleChangeCategory = event => {
+  const handleChangeCategory = (event) => {
     const selectedOptionValue = event.target.value;
     setValueCategory(selectedOptionValue);
     if (selectedOptionValue !== "") {
@@ -132,27 +127,20 @@ export default function ListProduct() {
     }
   };
 
-  const handleChangeCategoryItem = event => {
+  const handleChangeCategoryItem = (event) => {
     const selectedOptionValue = event.target.value;
     if (selectedOptionValue !== "") {
       setValueCategoryItem(selectedOptionValue);
     }
   };
-  //INPUT NUMBER
-  const handleDelete = async id => {
+
+  const handleDelete = async (id) => {
     await callAPI(`/api/product/${id}`, "DELETE");
     getdataProduct();
   };
-  //TÌM KIẾM
-  const handleFind = async () => {
-    const url = `/api/product/find?key=${valueOption}&valueKeyword=${textInput}&idCategoryItem=${valueCategoryItem}&minQuantity=0&maxQuantity=0&status=1&stocking=false`;
-    const response = await callAPI(url, "GET");
-    if (response) {
-      setdataproduct(response.data);
-      setCurrentPage(1);
-    }
-    ThongBao(response.message, response.status);
-    console.log(response.data);
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
   };
   return (
     <React.Fragment>
@@ -160,22 +148,22 @@ export default function ListProduct() {
         <div className={`${style.formSearch}`}>
           <select
             value={valueOption}
-            onChange={handleChangeOption}
+            onChange={(e) => {
+              setValueOption(e.target.value);
+            }}
             className={`${style.optionSelect}`}
           >
-            <option value="">Lựa chọn</option>
             <option value="id">Mã Sản Phẩm</option>
             <option value="product_name">Tên Sản Phẩm</option>
           </select>
           <input
             className={`${style.inputSearch}`}
             type="text"
-            placeholder={`${selectedOption ? selectedOption : "Tìm kiếm"}...`}
-            onChange={e => setTextInput(e.target.value)}
+            onChange={(e) => setTextInput(e.target.value)}
           />
         </div>
         <div className={`${style.typeProduct}`}>
-          <label>Ngành hàng</label>
+          <label>Danh mục</label>
           <select
             value={valueCategory}
             onChange={handleChangeCategory}
@@ -190,30 +178,60 @@ export default function ListProduct() {
               );
             })}
           </select>
-          {valueCategory !== ""
-            ? <select
-                value={valueCategoryItem}
-                onChange={handleChangeCategoryItem}
-                className={`${style.optionSelectType}`}
-              >
-                <option value="">Phân Loại Sản Phẩm...</option>
-                {categoryItemData.map((value, index) => {
-                  return (
-                    <option key={index} value={value.id}>
-                      {value.type_category_item}
-                    </option>
-                  );
-                })}
-              </select>
-            : null}
+          {valueCategory !== "" ? (
+            <select
+              value={valueCategoryItem}
+              onChange={handleChangeCategoryItem}
+              className={`${style.optionSelectType}`}
+            >
+              <option value="">Phân Loại Sản Phẩm...</option>
+              {categoryItemData.map((value, index) => {
+                return (
+                  <option key={index} value={value.id}>
+                    {value.type_category_item}
+                  </option>
+                );
+              })}
+            </select>
+          ) : null}
         </div>
         <button
           className={`${style.buttonSearch}`}
-          onClick={() => handleFind()}
+          onClick={() => setreload(reloadinPage + 1)}
         >
           Tìm Kiếm
         </button>
       </div>
+
+      <div className={`${style.typeProduct}`}>
+        <label>Sắp xếp</label>
+        <select
+          value={sortBy}
+          onChange={(e) => {
+            setsortBy(e.target.value);
+          }}
+          className={`${style.optionSelectType}`}
+        >
+          <option value="">Lựa chọn...</option>
+          <option value={"id"}>Mã sản phẩm</option>
+          <option value={"product_name"}>Tên sản phẩm</option>
+          <option value={"price"}>Giá</option>
+          <option value={"create_date"}>Ngày tạo</option>
+        </select>
+        {sortBy !== "" ? (
+          <select
+            value={sortType}
+            onChange={(e) => {
+              setsortType(e.target.value);
+            }}
+            className={`${style.optionSelectType}`}
+          >
+            <option value="asc">Tăng dần</option>
+            <option value="desc">Giảm dần</option>
+          </select>
+        ) : null}
+      </div>
+
       <div className={`${style.listProduct}`}>
         <div className={style.table}>
           <div className={style.tableHeading}>
@@ -227,112 +245,101 @@ export default function ListProduct() {
             <label className={style.column}>Ngày tạo</label>
             <label className={style.column} />
           </div>
-          {listPage &&
-            listPage.map((value, index) =>
-              <div key={index} className={style.tableBody}>
-                <label className={style.column}>
-                  {(currentPage - 1) * numberPage + index + 1}
-                </label>
-                <label className={style.column}>
-                  {value[0]}
-                </label>
-                <label className={style.column}>
-                  {Array.isArray(value[1])
-                    ? value[1].map((item, index) =>
-                        <img
-                          key={index}
-                          className={style.image}
-                          src={`http://localhost:8080/api/uploadImageProduct/${item}`}
-                          alt="Hình Ảnh"
-                        />
-                      )
-                    : <img
-                        className={style.image}
-                        src={`/images/nullImage.png`}
-                        alt="Hình Ảnh"
-                      />}
-                </label>
-                <label className={style.column}>
-                  {value[2]}
-                </label>
-                <label className={style.column}>
-                  {value[3]}
-                </label>
-                <label className={style.column}>
-                  {formatCurrency(value[4], 0)}
-                </label>
-                <label className={style.column}>
-                  <span
-                    className={style.status}
-                    style={{
-                      backgroundColor:
-                        value[6] === 0
-                          ? "#34219E"
-                          : value[6] === 1
-                            ? "green"
-                            : value[6] === 2 ? "red" : "#E74C3C"
-                    }}
-                    value={`${value[6]}`}
-                  >
-                    {value[6] === 0
-                      ? "Chờ Phê Duyệt"
-                      : value[6] === 1
-                        ? "Đang Hoạt Động"
-                        : value[6] === 2
-                          ? "Dừng Hoạt Động"
-                          : value[6] === 3 ? "Cấm hoạt động" : "Lỗi"}
-                  </span>
-                </label>
-                <label className={style.column}>
-                  {value[5]}
-                </label>
-                <label className={style.column}>
-                  <i
-                    className={`bi bi-pencil-square ${style.buttonEdit}`}
-                    onClick={handleClickEditProduct}
+          {products?.content?.map((value, index) => (
+            <div key={index} className={style.tableBody}>
+              <label className={style.column}>{index}</label>
+              <label className={style.column}>{value.id}</label>
+              <label className={style.column}>
+                {Array.isArray(value.image_product) ? (
+                  value.image_product?.map((item, index) => (
+                    <img
+                      key={index}
+                      className={style.image}
+                      src={`http://localhost:8080/api/uploadImageProduct/${item.url}`}
+                      alt="Hình Ảnh"
+                    />
+                  ))
+                ) : (
+                  <img
+                    className={style.image}
+                    src={`/images/nullImage.png`}
+                    alt="Hình Ảnh"
                   />
-                </label>
-              </div>
-            )}
+                )}
+              </label>
+              <label className={style.column}>{value.product_name}</label>
+              <label className={style.column}>
+                {value.categoryItem_product.type_category_item}
+              </label>
+              <label className={style.column}>
+                {formatCurrency(value.price, 0)}
+              </label>
+              <label className={style.column}>
+                <span
+                  className={style.status}
+                  style={{
+                    backgroundColor:
+                      value.status === 0
+                        ? "#34219E"
+                        : value.status === 1
+                        ? "green"
+                        : value.status === 2
+                        ? "red"
+                        : "#E74C3C"
+                  }}
+                  value={`${value.status}`}
+                >
+                  {value.status === 0
+                    ? "Chờ Phê Duyệt"
+                    : value.status === 1
+                    ? "Đang Hoạt Động"
+                    : value.status === 2
+                    ? "Dừng Hoạt Động"
+                    : value.status === 3
+                    ? "Cấm hoạt động"
+                    : "Lỗi"}
+                </span>
+              </label>
+              <label className={style.column}>
+                {formatDate(value.create_date)}
+              </label>
+              <label className={style.column}>
+                <i
+                  className={`bi bi-pencil-square ${style.buttonEdit}`}
+                  onClick={handleClickEditProduct}
+                />
+              </label>
+            </div>
+          ))}
         </div>
-        <div className={`${style.buttonPage}`}>
-          <Nav.Link className={`btn`} onClick={() => handlePageChange(1)}>
-            <i className="bi bi-chevron-bar-left" />
-          </Nav.Link>
-          {currentPage - 1 > 0
-            ? <Nav.Link
-                className={`btn`}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                {currentPage - 1}
-              </Nav.Link>
-            : null}
-
-          <Nav.Link className={`btn ${style.btnActivePage}`}>
-            {currentPage}
-          </Nav.Link>
-          {currentPage + 1 <= totalPages
-            ? <Nav.Link
-                className={`btn`}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                {currentPage + 1}
-              </Nav.Link>
-            : null}
-          <Nav.Link
-            className={`btn`}
-            onClick={() => handlePageChange(totalPages)}
-          >
-            <i className="bi bi-chevron-bar-right" />
-          </Nav.Link>
+        <div
+          className={style.paginationContainer}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px"
+          }}
+        >
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            boundaryCount={2}
+            variant="outlined"
+            shape="rounded"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
         </div>
       </div>
-      {isModalOpen &&
+      {isModalOpen && (
         <ModelEdit
           onReload={getdataProduct}
           data={modalData}
           closeModal={closeModal}
-        />}
+        />
+      )}
     </React.Fragment>
   );
 }

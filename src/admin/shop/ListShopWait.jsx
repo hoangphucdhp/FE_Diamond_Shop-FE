@@ -40,7 +40,7 @@ function ListShopWait() {
             <label className={style.column}>Hình ảnh</label>
             <label className={style.column} />
           </div>
-          {ListShopWait && ListShopWait.map((value, index) =>
+          {ListShopWait.map((value, index) =>
             <div key={index} className={style.tableBody}>
               <label className={style.column}>
                 {index}

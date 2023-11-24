@@ -11,8 +11,10 @@ import { idCategoryItemUpdate } from "./service/Reducers";
 import { allDataShop } from "./service/Reducers";
 import { idShop } from "./service/Reducers";
 import { getreloadPage } from "./service/Reducers";
+import { idAccountAdmin } from "./service/Reducers";
+import { idProductAdmin } from "./service/Reducers";
 const allReducers = combineReducers({
-  allData, idCategoryUpdate, allDataCategory, idCategoryItemUpdate, allDataShop, idShop, getreloadPage
+  allData, idCategoryUpdate, allDataCategory, idCategoryItemUpdate, allDataShop, idShop, getreloadPage, idAccountAdmin, idProductAdmin
 });
 
 const store = createStore(allReducers);

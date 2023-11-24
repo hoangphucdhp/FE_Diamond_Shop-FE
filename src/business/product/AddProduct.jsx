@@ -7,8 +7,30 @@ import ProductService from '../../service/ProductService';
 import { useDispatch, useSelector } from 'react-redux';
 import { reloadPage } from '../../service/Actions';
 import { ThongBao } from '../../service/ThongBao';
+import { useNavigate } from 'react-router';
+import Cookies from 'js-cookie';
 
 function AddProduct() {
+    const [accountLogin, setAccountLogin] = useState(null);
+
+    const navigate = useNavigate();
+    const getAccountFromCookie = () => {
+      const accountCookie = Cookies.get("accountLogin");
+  
+      if (accountCookie !== undefined) {
+        try {
+          const data = JSON.parse(
+            decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
+          );
+          setAccountLogin(data);
+        } catch (error) {
+          console.log(error);
+        }
+      } else {
+        navigate("/login");
+      }
+    };
+
     const dispatch = useDispatch();
     const [datacategory, setcategorydata] = useState([]);
     const [categoryItemData, setcategoryItem] = useState([]);
@@ -26,11 +48,12 @@ function AddProduct() {
     
     useEffect(() => {
         getdataCategory()
+        getAccountFromCookie()
     }, []);
 
     const getdataCategory = async () => {
         const reponse = await callAPI(`/api/category`, "GET");
-        setcategorydata(reponse)
+        setcategorydata(reponse.content)
     }
 
     const getdataCategoryItem = async (id) => {
@@ -99,7 +122,7 @@ function AddProduct() {
             return;
         }
     
-        const response = await ProductService.addProduct(name, price, description, 0, valueCategoryItem, quantityValue, selectedImages, imagesave);
+        const response = await ProductService.addProduct(name, price, description, 0, valueCategoryItem, quantityValue, selectedImages, imagesave, accountLogin.shop.id);
         if (response.status === 'success') {
             dispatch(reloadPage(reloadold + 1));
             ThongBao(response.message, response.status);

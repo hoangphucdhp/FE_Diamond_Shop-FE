@@ -71,7 +71,7 @@ export default function AllBill() {
         console.log(e);
       });
   };
-  console.log(shop);
+  
   const fetchApi = () => {
     axios
       .get("http://localhost:8080/api/order/getAllList")

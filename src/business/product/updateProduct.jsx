@@ -28,7 +28,6 @@ export default function ModelEdit({ onReload, data, closeModal }) {
     , []);
 
   const getdataproductbyid = async () => {
-    console.log(data.id)
     const reponse = await ProductService.getProductbyId(data.id)
     setproduct(reponse)
     setname(reponse.product_name)
@@ -106,6 +105,7 @@ export default function ModelEdit({ onReload, data, closeModal }) {
 
   const response = await ProductService.updateProduct(product.id, name, price, description, 0, valueCategoryItem, selectedImages, imagesave);
   dispatch(reloadPage(reloadold + 1));
+  setproduct(response)
   ThongBao(response.message, response.status);
   closeModal();
 };

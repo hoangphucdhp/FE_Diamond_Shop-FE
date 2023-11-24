@@ -47,6 +47,22 @@ export const idShop = (state = 0, action) => {
       return state;
   }
 };
+export const idAccountAdmin = (state = 0, action) => {
+  switch (action.type) {
+    case "GET_ID_ACCOUNT_ADMIN":
+      return action.payload;
+    default:
+      return state;
+  }
+};
+export const idProductAdmin = (state = 0, action) => {
+  switch (action.type) {
+    case "GET_ID_PRODUCT_ADMIN":
+      return action.payload;
+    default:
+      return state;
+  }
+};
 export const getreloadPage = (state = 0, action) => {
   switch (action.type) {
     case "RELOAD_PAGE":
@@ -55,4 +71,3 @@ export const getreloadPage = (state = 0, action) => {
       return state;
   }
 };
-

@@ -1,62 +1,71 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import style from "../../css/admin/product/listproduct.module.css";
 import "react-datepicker/dist/react-datepicker.css";
-import Nav from "react-bootstrap/Nav";
-import dayjs, { Dayjs } from "dayjs";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import "react-datepicker/dist/react-datepicker.css";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { callAPI } from "../../service/API";
+import { Pagination } from "@mui/material";
 
-const numberPage = 10;
-const listBill = [
-  {
-    idProduct: "product001",
-    productName: "Áo Sơ Mi Nam Cực Quyến Rũ",
-    shopName: "Thời Trang Nam",
-    price: 123456,
-    createDate: "20/10/2023",
-    status: 0
-  },
-  {
-    idProduct: "product001",
-    productName: "Áo Sơ Mi Nam Cực Quyến Rũ",
-    shopName: "Thời Trang Nam",
-    price: 123456,
-    createDate: "20/10/2023",
-    status: 1
-  },
-  {
-    idProduct: "product001",
-    productName: "Áo Sơ Mi Nam Cực Quyến Rũ",
-    shopName: "Thời Trang Nam",
-    price: 123456,
-    createDate: "20/10/2023",
-    status: 2
-  }
-];
 
+import moment from 'moment';
+import ModelDetail from "./ModelDetail";
+import { getIdProductAdmin } from "../../service/Actions";
+function formatDate(date) {
+  return moment(date).format("DD-MM-YYYY HH:mm:ss");
+}
 function ListProduct() {
-  //PAGE
+  const dispatch = useDispatch();
+  const data = useSelector((state) => state.idAccountAdmin);
+  const [products, setProducts] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const numberPage = 10
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(listBill.length / numberPage);
+  const [totalPages, setTotalPages] = useState(1);
+  const [keyword, setkeyword] = useState('');
+  const [keyfind, setkeyfind] = useState('');
+  const [reload, setreload] = useState(0)
+  const [sortBy,setsortBy]=useState('')
+  const [sortType,setsortType]=useState('')
 
-  if (currentPage < 1) {
-    setCurrentPage(1);
-  } else if (currentPage > totalPages) {
-    setCurrentPage(totalPages);
-  }
-  const startIndex = (currentPage - 1) * numberPage;
-  const endIndex = startIndex + numberPage;
+  useEffect(() => {
+    getdata(currentPage);
+  }, [data, currentPage, reload,sortType]);
 
-  const listPage = listBill.slice(startIndex, endIndex);
-
-  const handlePageChange = page => {
-    setCurrentPage(page);
+  const getdata = async (page) => {
+    try {
+      const response = await callAPI(`/api/product/getAll?key=${keyfind}&keyword=${keyword}&offset=${(page - 1) * numberPage}&sizePage=${numberPage}&sort=${sortBy}&sortType=${sortType}`, "GET");
+      const responseData = response.data;
+      setProducts(responseData || []);
+      setTotalPages(responseData.totalPages || 1);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
-  //CHUYỂN ĐỔI TIỀN TỆ
+
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
+
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      const formData = new FormData();
+      formData.append('status', status);
+      const res = await callAPI(`/api/product/adminupdatestatus/${id}`, 'PUT', formData)
+      setreload(reload + 1)
+    } catch (error) {
+      console.log(error)
+    }
+  }
   function formatCurrency(price, promotion) {
     const formatter = new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -65,25 +74,6 @@ function ListProduct() {
     });
     return formatter.format(price - price * (promotion / 100));
   }
-
-  //FORM SEARCH
-  const [selectedOption, setSelectedOption] = React.useState("");
-  const [valueOption, setValueOption] = React.useState("");
-  const handleChangeOption = event => {
-    const selectedOptionValue = event.target.value;
-    let text = "";
-    setValueOption(selectedOptionValue);
-    const options = event.target.options;
-    for (let i = 0; i < options.length; i++) {
-      if (options[i].value === selectedOptionValue) {
-        text = options[i].innerText;
-        break;
-      }
-    }
-
-    setSelectedOption(text);
-  };
-
   return (
     <React.Fragment>
       <div className={style.listProduct}>
@@ -92,52 +82,113 @@ function ListProduct() {
             <label className={style.title}>Danh sách sản phẩm</label>
             <div className={`${style.formSearch}`}>
               <select
-                value={valueOption}
-                onChange={handleChangeOption}
+                value={keyfind}
+                onChange={(e) => {
+                  setkeyfind(e.target.value)
+                }}
                 className={`${style.optionSelect}`}
               >
-                <option value="idProduct">Mã sản phẩm</option>
-                <option value="productName">Tên sản phẩm</option>
-                <option value="shopName">Tên cửa hàng</option>
+                <option value="id">Mã sản phẩm</option>
+                <option value="name">Tên sản phẩm</option>
+                <option value="shop">Tên cửa hàng</option>
               </select>
               <input
                 className={`${style.inputSearch}`}
                 type="text"
-                placeholder={`${selectedOption
-                  ? selectedOption
-                  : "Tìm kiếm"}...`}
+                onChange={(e) => {
+                  setkeyword(e.target.value)
+                }}
               />
-              <button className={`${style.buttonSearch}`}>Tìm Kiếm</button>
+              <button className={`${style.buttonSearch}`} onClick={() => { setreload(reload + 1) }}>Tìm Kiếm</button>
             </div>
           </div>
         </div>
+
+        {/* Sort */}
+        <div className={`${style.typeProduct}`}>
+          <label>Sắp xếp</label>
+          <select
+            value={sortBy}
+            onChange={(e)=>{
+              setsortBy(e.target.value)
+            }}
+            className={`${style.optionSelectType}`}
+          >
+            <option value="">Lựa chọn...</option>
+                <option value={'id'}>
+                    Mã sản phẩm
+                </option>
+                <option value={'product_name'}>
+                    Tên sản phẩm
+                </option>
+                <option value={'price'}>
+                    Giá
+                </option>
+                <option value={'create_date'}>
+                    Ngày tạo
+                </option>
+          </select>
+          {sortBy !== ''
+            ? <select
+              value={sortType}
+              onChange={(e)=>{
+                setsortType(e.target.value)
+              }}
+              className={`${style.optionSelectType}`}
+            >
+              <option value="asc">Tăng dần</option>
+              <option value="desc">Giảm dần</option>
+            </select>
+            : null}
+        </div>
+
         <div className={style.table}>
           <div className={style.tableHeading}>
-            <label className={style.column}>ID</label>
+            <label className={style.column}>STT</label>
             <label className={style.column}>Mã sản phẩm</label>
+            <label className={style.column}>Hình ảnh</label>
             <label className={style.column}>Tên sản phẩm</label>
-            <label className={style.column}>Tên cửa hàng</label>
+            <label className={style.column}>Danh mục</label>
+            <label className={style.column}>Giá SP</label>
             <label className={style.column}>Ngày tạo</label>
             <label className={style.column}>Trạng thái</label>
             <label className={style.column} />
             <label className={style.column} />
           </div>
-          {listPage && listPage.map((value, index) =>
+          {products?.content?.map((value, index) => (
             <div key={index} className={style.tableBody}>
               <label className={style.column}>
-                {currentPage * numberPage - numberPage + index + 1}
+                {index}
               </label>
               <label className={style.column}>
-                {value.idProduct}
+                {value.id}
               </label>
               <label className={style.column}>
-                {value.productName}
+                {value.image_product == null ? value.image_product?.map((item, index) =>
+                  <img
+                    key={index}
+                    className={style.image}
+                    src={`http://localhost:8080/api/uploadImageProduct/${item}`}
+                    alt="Hình Ảnh"
+                  />
+                )
+                  : <img
+                    className={style.image}
+                    src={`/images/nullImage.png`}
+                    alt="Hình Ảnh"
+                  />}
               </label>
               <label className={style.column}>
-                {value.shopName}
+                {value.product_name}
               </label>
               <label className={style.column}>
-                {value.createDate}
+                {value.categoryItem_product?.type_category_item}
+              </label>
+              <label className={style.column}>
+              {formatCurrency(value.price, 0)}
+              </label>
+              <label className={style.column}>
+                {formatDate(value.create_date)}
               </label>
               <label className={style.column}>
                 <span
@@ -160,8 +211,8 @@ function ListProduct() {
                 </span>
               </label>
               <label className={style.column}>
-                <a
-                  href="#updateStatus"
+                <p
+                  onClick={() => { handleUpdateStatus(value.id, value.status) }}
                   className={`btn ${style.updateStatus}`}
                   style={{
                     backgroundColor:
@@ -178,39 +229,36 @@ function ListProduct() {
                     : value.status === 1
                       ? "Cấm Hoạt Động"
                       : value.status === 2 ? "Mở Hoạt Động" : "Lỗi"}
-                </a>
+                </p>
               </label>
               <label className={style.column}>
-                <Link to="/admin/bills/billdetail">Xem Chi Tiết</Link>
+                <p onClick={() => {
+                  dispatch(getIdProductAdmin(value.id));
+                  openModal();
+                }}>Xem chi tiết</p>
               </label>
             </div>
-          )}
+          ))}
         </div>
-        <div className={`${style.buttonPage}`}>
-          <Nav.Link className={`btn`} onClick={() => handlePageChange(1)}>
-            <i className="bi bi-chevron-bar-left" />
-          </Nav.Link>
-          <Nav.Link
-            className={`btn`}
-            onClick={() => handlePageChange(currentPage - 1)}
-          >
-            <i className="bi bi-caret-left" />
-          </Nav.Link>
-          <Nav.Link
-            className={`btn`}
-            onClick={() => handlePageChange(currentPage + 1)}
-          >
-            <i className="bi bi-caret-right" />
-          </Nav.Link>
-          <Nav.Link
-            className={`btn`}
-            onClick={() =>
-              handlePageChange(Math.ceil(listBill.length / numberPage))}
-          >
-            <i className="bi bi-chevron-bar-right" />
-          </Nav.Link>
+        <div className={style.paginationContainer} style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '20px'
+        }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            boundaryCount={2}
+            variant="outlined"
+            shape="rounded"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
         </div>
       </div>
+      {showModal && <ModelDetail status={showModal} toggleShow={closeModal} />}
     </React.Fragment>
   );
 }

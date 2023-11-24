@@ -50,7 +50,7 @@ function Cart() {
   //Lưu giá trị của count vào local khi count thay đổi
   const findShopByProduct = (idProduct) => {
     axios
-      .get(`http://localhost:8080/api/shop/findByProduct/${10}`)
+      .get(`http://localhost:8080/api/shop/findByProduct/${idProduct}`)
       .then((response) => {
         const shopData = response.data;
         // console.log(response.data);
