@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ListShop from "./ListShop";
-import { useDispatch, useSelector } from "react-redux";
-import ShopService from "../../service/ShopService";
-import { getAllShop } from "../../service/Actions";
+
 import style from "../../css/business/product.module.css";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
@@ -12,23 +10,11 @@ import TabPanel from "@mui/lab/TabPanel";
 import ListShopWait from "./ListShopWait";
 
 function Shop() {
-  const dispatch = useDispatch();
-  const idShop = useSelector((state) => state.idShop);
   const [value, setValue] = React.useState("1");
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
 
-
-  useEffect(() => {
-    getdataShop();
-  }, [idShop]);
-
-  const getdataShop = async () => {
-    const reponse = await ShopService.getAllshop();
-    console.log('account', reponse)
-    dispatch(getAllShop(reponse.data));
-  };
 
   return (
     <React.Fragment>

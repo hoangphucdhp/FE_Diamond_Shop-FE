@@ -245,7 +245,7 @@ export default function ListProduct() {
             <label className={style.column}>Ngày tạo</label>
             <label className={style.column} />
           </div>
-          {products?.content?.map((value, index) => (
+          {products.map((value, index) => (
             <div key={index} className={style.tableBody}>
               <label className={style.column}>{index}</label>
               <label className={style.column}>{value.id}</label>

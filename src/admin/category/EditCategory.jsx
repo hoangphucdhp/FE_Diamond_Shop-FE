@@ -30,7 +30,7 @@ function EditCategory() {
       navigate("/login");
     }
   };
-  
+
   useEffect(() => {
     getAccountFromCookie();
   }, []);
@@ -40,7 +40,6 @@ function EditCategory() {
   const [type_category, setTypeCate] = useState("");
   const [type_categoryItem, setTypeCateItem] = useState("");
   const [valueCategory, setValueCategory] = useState();
-  const [category, setcategory] = useState({});
   const [categoryItem, setcategoryItem] = useState({});
   const [image, setimage] = useState(null);
   const [listCategory, setListcategory] = useState([]);
@@ -48,37 +47,34 @@ function EditCategory() {
   const [imageload, setimageload] = useState("");
   const navigate = useNavigate();
   //GET DATA REDUX
-  const data = useSelector(state => state.allDataCategory);
-  const idCategory = useSelector(state => state.idCategoryUpdate);
-  const idCategoryItem = useSelector(state => state.idCategoryItemUpdate);
-  const reloadold = useSelector(state => state.getreloadPage);
+  const data = useSelector((state) => state.allDataCategory);
+  const idCategory = useSelector((state) => state.idCategoryUpdate);
+  const idCategoryItem = useSelector((state) => state.idCategoryItemUpdate);
+  const reloadold = useSelector((state) => state.getreloadPage);
 
-  useEffect(
-    () => {
-      if (Array.isArray(data)) {
-        setListcategory(data);
-        if (listCategory !== null && idCategory !== 0 && idCategoryItem === 0) {
-          getCategoryId();
-        } else if (
-          listCategory !== null &&
-          idCategory === 0 &&
-          idCategoryItem !== 0
-        ) {
-          getCategoryItemId();
-        } else if (
-          idCategory !== 0 &&
-          idCategoryItem !== 0 &&
-          listCategory !== null
-        ) {
-          getCategoryId();
-          getCategoryItemId();
-        }
+  useEffect(() => {
+    if (Array.isArray(data)) {
+      setListcategory(data);
+      if (listCategory !== null && idCategory !== 0 && idCategoryItem === 0) {
+        getCategoryId();
+      } else if (
+        listCategory !== null &&
+        idCategory === 0 &&
+        idCategoryItem !== 0
+      ) {
+        getCategoryItemId();
+      } else if (
+        idCategory !== 0 &&
+        idCategoryItem !== 0 &&
+        listCategory !== null
+      ) {
+        getCategoryId();
+        getCategoryItemId();
       }
-    },
-    [reload, data, idCategory, idCategoryItem, listCategory]
-  );
+    }
+  }, [reload, data, idCategory, idCategoryItem, listCategory]);
 
-  const handleImageChange = e => {
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file.size > 800 * 1024) {
       alert(
@@ -87,7 +83,7 @@ function EditCategory() {
     } else {
       setimage(file);
       const reader = new FileReader();
-      reader.onload = event => {
+      reader.onload = (event) => {
         setSelectedImage(event.target.result);
       };
       reader.readAsDataURL(file);
@@ -97,7 +93,6 @@ function EditCategory() {
   const getCategoryId = async () => {
     try {
       const data = await CategoryService.getAllCategoryById(idCategory);
-      setcategory(data);
       dispatch(getIdcategoryUpdate(data.id));
       setTypeCate(data.type_category);
       setimageload(data.image);
@@ -119,10 +114,12 @@ function EditCategory() {
         );
         if (response.status === "success") {
           ThongBao(response.message, response.status);
-          dispatch(getIdcategoryUpdate(response.data.id));
+          dispatch(getIdcategoryUpdate(0));
           dispatch(reloadPage(reloadold + 1));
-          setcategory(null)
+          setTypeCate("");
+          setimage(null);
           setSelectedImage(null);
+          setimageload("");
         }
       } catch (error) {
         ThongBao("Thêm loại sản phẩm thất bại!", "error");
@@ -133,13 +130,18 @@ function EditCategory() {
   const handleUpdateCategory = async () => {
     try {
       const result = await CategoryService.updateCategory(
-        category.id,
+        idCategory,
         type_category,
         image
       );
       if (result.status === "success") {
         ThongBao(result.message, result.status);
+        dispatch(getIdcategoryUpdate(0));
         dispatch(reloadPage(reloadold + 1));
+        setTypeCate("");
+        setimage(null);
+        setSelectedImage(null);
+        setimageload("");
       }
     } catch (error) {
       ThongBao("Có lỗi xảy ra. Thử lại", "error");
@@ -152,8 +154,11 @@ function EditCategory() {
       if (reponse.status === "success") {
         ThongBao(reponse.message, reponse.status);
         dispatch(getIdcategoryUpdate(0));
-        setcategory({});
         dispatch(reloadPage(reloadold + 1));
+        setTypeCate("");
+        setimage(null);
+        setSelectedImage(null);
+        setimageload("");
       } else {
         ThongBao(reponse.message, reponse.status);
       }
@@ -190,8 +195,8 @@ function EditCategory() {
         const data = await CategoryService.getAllCategoryItemById(
           idCategoryItem
         );
-        const matchingCategory = listCategory.find(category =>
-          category.listCategory.some(listItem => listItem.id === data.id)
+        const matchingCategory = listCategory.find((category) =>
+          category.listCategory.some((listItem) => listItem.id === data.id)
         );
         if (matchingCategory) {
           setValueCategory(matchingCategory.id);
@@ -256,19 +261,19 @@ function EditCategory() {
           <div className={style.column}>
             <label className={style.heading}>Loại sản phẩm</label>
             <div className={style.formImage}>
-              {selectedImage !== null
-                ? <img
-                    className={style.image}
-                    src={selectedImage}
-                    alt="Hình Ảnh"
-                  />
-                : imageload !== ""
-                  ? <img
-                      className={style.image}
-                      src={`http://localhost:8080/api/uploadImageProduct/${imageload}`}
-                      alt="Hình Ảnh"
-                    />
-                  : null}
+              {selectedImage !== null ? (
+                <img
+                  className={style.image}
+                  src={selectedImage}
+                  alt="Hình Ảnh"
+                />
+              ) : imageload !== "" ? (
+                <img
+                  className={style.image}
+                  src={`http://localhost:8080/api/uploadImageProduct/${imageload}`}
+                  alt="Hình Ảnh"
+                />
+              ) : null}
               <div className={style.action}>
                 <input
                   type="file"
@@ -292,19 +297,22 @@ function EditCategory() {
               id="idInputcategory"
               placeholder="Tên loại..."
               value={type_category}
-              onChange={e => {
+              onChange={(e) => {
                 setTypeCate(e.target.value);
               }}
             />
             <div className={style.formButton}>
-              <button
-                className={style.button}
-                onClick={() => {
-                  handleAddCategory();
-                }}
-              >
-                <i className="bi bi-plus-lg" /> THÊM
-              </button>
+              {!idCategory ? (
+                <button
+                  className={style.button}
+                  onClick={() => {
+                    handleAddCategory();
+                  }}
+                >
+                  <i className="bi bi-plus-lg" /> THÊM
+                </button>
+              ) : null}
+
               <button className={style.button} onClick={handleUpdateCategory}>
                 <i className="bi bi-pencil-square" /> SỬA
               </button>
@@ -321,16 +329,16 @@ function EditCategory() {
             <select
               className={style.select}
               value={valueCategory}
-              onChange={e => {
+              onChange={(e) => {
                 setValueCategory(e.target.value);
               }}
             >
               <option value="">Lựa chọn</option>
-              {listCategory.map((value, index) =>
+              {listCategory.map((value, index) => (
                 <option key={index} value={value.id}>
                   {value.type_category}
                 </option>
-              )}
+              ))}
             </select>
             <input
               className={style.inputText}
@@ -338,7 +346,7 @@ function EditCategory() {
               id="idInputcategoryItem"
               placeholder="Tên phân loại..."
               value={type_categoryItem}
-              onChange={e => {
+              onChange={(e) => {
                 setTypeCateItem(e.target.value);
               }}
             />

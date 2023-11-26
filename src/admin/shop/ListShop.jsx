@@ -1,22 +1,41 @@
 import React, { useEffect, useState } from "react";
 import style from "../../css/admin/shop/listshop.module.css";
 import { useDispatch, useSelector } from "react-redux";
-import { getIdShop } from "../../service/Actions";
+import { getAllShop, getIdShop } from "../../service/Actions";
 import ModelAccess from "./ModelAccess";
 import moment from "moment";
 import Cookies from "js-cookie";
 import listDataAddress from "../../service/AddressVietNam";
 import { useNavigate } from "react-router";
+import { callAPI } from "../../service/API";
+import { Pagination } from "@mui/material";
 
 function formatDate(date) {
   return moment(date).format("DD-MM-YYYY HH:mm:ss");
 }
 function ListShop() {
+  const numberPage = 10; 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [keyword, setkeyword] = useState('');
+  const [keyfind, setkeyfind] = useState('');
+  const [reload, setreload] = useState(0)
+  const [sortBy,setsortBy]=useState('')
+  const [sortType,setsortType]=useState('')
+  const [listShop, setListShop] = useState([]);
   const [accountLogin, setAccountLogin] = useState(null);
+  const dispatch = useDispatch();
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  const data = useSelector((state) => state.idShop);
+  useEffect(() => {
+    getAccountFromCookie();
+    getdata(currentPage);
+  }, [reload,currentPage,sortType,data]);
+
+
   const getAccountFromCookie = () => {
     const accountCookie = Cookies.get("accountLogin");
-
     if (accountCookie !== undefined) {
       try {
         const data = JSON.parse(
@@ -30,15 +49,18 @@ function ListShop() {
       navigate("/login");
     }
   };
-
-  useEffect(() => {
-    getAccountFromCookie();
-  }, []);
-
-  const [listShop, setListShop] = useState([]);
-  const dispatch = useDispatch();
-  const data = useSelector((state) => state.allDataShop);
-  const [showModal, setShowModal] = useState(false);
+  const getdata = async (page) => {
+    try {
+      const response = await callAPI(`/api/account/getAll?key=${keyfind}&keyword=${keyword}&offset=${(page - 1) * numberPage}&sizePage=${numberPage}&sort=${sortBy}&sortType=${sortType}&shoporaccount=shop`, "GET");
+      const responseData = response.data;
+      const listShop = responseData.content.map((value) => value.shop);
+      setListShop(listShop || []);
+      setTotalPages(responseData.totalPages || 1);
+      dispatch(getAllShop(responseData.content));
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   const openModal = () => {
     setShowModal(true);
@@ -47,18 +69,40 @@ function ListShop() {
   const closeModal = () => {
     setShowModal(false);
   };
-  useEffect(() => {
-    if (Array.isArray(data)) {
-      const listShop = data.map((value) => value.shop);
-      setListShop(listShop);
-    }
-  }, [data]);
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
 
   return (
     <React.Fragment>
-      <div className={style.filter}>
-        <label className={style.heading}>Danh sách cửa hàng</label>
-      </div>
+      <div className={style.heading}>
+          <div className={style.column}>
+            <label className={style.title}>Danh sách cửa hàng</label>
+            <div className={`${style.formSearch}`}>
+              <select
+                className={`${style.optionSelect}`}
+                value={keyfind}
+                onChange={(e) => {
+                  setkeyfind(e.target.value)
+                }}
+              >
+                <option value="shop_name">Tên cửa hàng</option>
+                <option value="username">Tên đăng nhập</option>
+              </select>
+              <input
+                className={`${style.inputSearch}`}
+                type="text"
+                onChange={(e) => {
+                  setkeyword(e.target.value)
+                }}
+              />
+              <button className={`${style.buttonSearch}`} onClick={() => { setreload(reload + 1) }}>Tìm Kiếm</button>
+            </div>
+          </div>
+        </div>
+
+       
       <div className={style.listShop}>
         {listShop?.map((value, index) => (
           <div className={style.cardShop} key={index}>
@@ -174,6 +218,23 @@ function ListShop() {
             </div>
           </div>
         ))}
+         <div className={style.paginationContainer} style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '20px'
+        }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            boundaryCount={2}
+            variant="outlined"
+            shape="rounded"
+            size="large"
+            showFirstButton
+            showLastButton
+          />
+        </div>
       </div>
       {showModal && <ModelAccess status={showModal} toggleShow={closeModal} />}
     </React.Fragment>

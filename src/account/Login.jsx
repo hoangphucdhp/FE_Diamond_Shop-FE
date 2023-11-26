@@ -107,7 +107,7 @@ function Login() {
                         <div className="form-group">
                           <label htmlFor="exampleInputEmail1">Tài khoản</label>
                           <input
-                            type="email"
+                            type="text"
                             className="form-control"
                             id="exampleInputEmail1"
                             onChange={(e) => setUsername(e.target.value)}
