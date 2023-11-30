@@ -5,20 +5,17 @@ import { Pagination } from "@mui/material";
 import { callAPI } from "../../service/API";
 import { useNavigate } from "react-router";
 import Cookies from "js-cookie";
+import { GetDataLogin } from "../../service/DataLogin";
 function ListStorge() {
-  const [accountLogin, setAccountLogin] = useState(null);
 
   const navigate = useNavigate();
-  const getAccountFromCookie = () => {
-    const accountCookie = Cookies.get("accountLogin");
+  const getAccountFromSession = () => {
+    const accountLogin = GetDataLogin();
 
-    if (accountCookie !== undefined) {
+    if (accountLogin !== undefined) {
       try {
-        const data = JSON.parse(
-          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
-        );
-        setAccountLogin(data);
-        getdataProduct(currentPage, data.shop.id);
+        getdataProduct(currentPage, accountLogin.shop.id);
+
       } catch (error) {
         console.log(error);
       }
@@ -34,7 +31,7 @@ function ListStorge() {
   const numberPage = 10;
 
   useEffect(() => {
-    getAccountFromCookie();
+    getAccountFromSession();
   }, [reload, currentPage]);
 
   const getdataProduct = async (page, idShop) => {

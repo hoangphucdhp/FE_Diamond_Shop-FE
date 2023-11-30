@@ -7,20 +7,17 @@ import { callAPI } from "../../service/API";
 import { Pagination } from "@mui/material";
 import { useNavigate } from "react-router";
 import Cookies from "js-cookie";
+import { GetDataLogin } from "../../service/DataLogin";
 
 function HistoryAdd() {
-  const [accountLogin, setAccountLogin] = useState(null);
-
   const navigate = useNavigate();
   const getAccountFromCookie = () => {
-    const accountCookie = Cookies.get("accountLogin");
-    if (accountCookie !== undefined) {
+    const accountLogin = GetDataLogin();
+
+    if (accountLogin !== undefined) {
       try {
-        const data = JSON.parse(
-          decodeURIComponent(escape(window.atob(Cookies.get("accountLogin"))))
-        );
-        setAccountLogin(data);
-        getdataProducts(currentPage, data.shop.id);
+        getdataProducts(currentPage, accountLogin.shop.id);
+
       } catch (error) {
         console.log(error);
       }
